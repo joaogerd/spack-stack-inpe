@@ -1,7 +1,30 @@
-# JACI mirrors for JCSDA spack-stack.
+# JACI mirrors.yaml for JCSDA spack-stack
 #
-# Status:
-#   Initial skeleton. Add INPE mirrors/buildcaches after the mirror policy is
-#   defined and validated.
+# Purpose
+# -------
+# Define source mirrors, binary mirrors or buildcaches available to the JACI
+# site.
+#
+# Context
+# -------
+# The initial JACI validation did not depend on an institutional INPE mirror or
+# buildcache. Keeping this file in the site tree follows the JCSDA spack-stack
+# site convention and leaves a clear place for future mirror policy.
+#
+# Validation status
+# -----------------
+# No INPE/JACI mirror or buildcache is currently confirmed here.
+#
+# How to use
+# ----------
+# Add mirrors only after they are created, reachable from JACI and validated
+# with Spack. Do not add placeholder URLs as active mirrors.
+#
+# Open items
+# ----------
+# 1. Decide whether INPE will maintain a source mirror.
+# 2. Decide whether INPE will maintain a binary buildcache.
+# 3. Define access policy, signing keys and refresh workflow if buildcache is
+#    adopted.
 
 mirrors: {}
