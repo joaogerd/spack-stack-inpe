@@ -1,0 +1,21 @@
+# JACI site config for JCSDA spack-stack.
+#
+# Status:
+#   Initial skeleton. Values must be completed from the validated JACI setup
+#   before this file is treated as production-ready.
+
+config:
+  # TODO: confirm final institutional install tree.
+  # Example pattern used during validation:
+  # install_tree:
+  #   root: /p/projetos/monan_das/${user}/env/spack-stack/install-release-2.1-gcc13
+
+  # TODO: confirm build stage and cache policy for JACI.
+  # build_stage:
+  #   - /p/projetos/monan_das/${user}/work/spack-stage
+
+  # TODO: confirm source cache location.
+  # source_cache: /p/projetos/monan_das/${user}/cache/spack/source_cache
+
+  # Keep concretizer behavior explicit after validation.
+  concretizer: clingo
