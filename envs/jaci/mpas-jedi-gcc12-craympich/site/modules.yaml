@@ -1,0 +1,19 @@
+# JACI site modules include
+#
+# Purpose: site-level Tcl module configuration for the validated JACI stack.
+# Context: the validated environment used include layers named site and common.
+# Validation: compare with envs/mpas-bundle-jaci-gnu12/site/modules.yaml.
+
+modules:
+  default:
+    enable:
+      - tcl
+    roots:
+      tcl: $env/modules
+    tcl:
+      projections:
+        ^mpi: '{^mpi.name}/{^mpi.version}/{compiler.name}/{compiler.version}/{name}/{version}'
+        all: '{compiler.name}/{compiler.version}/{name}/{version}'
+      hash_length: 0
+      all:
+        autoload: direct
