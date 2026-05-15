@@ -70,12 +70,12 @@ export TEST_ID="spack-stack-inpe-fresh-$(date -u +%Y%m%dT%H%M%SZ)"
 export FRESH_INSTALL=1
 export FORCE_SOURCE_BUILD=1
 
-bash scripts/manual/01_prepare_jaci_stack.sh
-bash scripts/manual/02_install_packages.sh
-bash scripts/manual/03_generate_tcl_modules.sh
-bash scripts/manual/04_validate_environment.sh
-bash scripts/manual/05_validate_cmake_findmpi.sh
-bash scripts/manual/06_collect_logs.sh
+bash scripts/01_prepare_jaci_stack.sh
+bash scripts/02_install_packages.sh
+bash scripts/03_generate_tcl_modules.sh
+bash scripts/04_validate_environment.sh
+bash scripts/05_validate_cmake_findmpi.sh
+bash scripts/06_collect_logs.sh
 ```
 
 ## Notes
