@@ -1,0 +1,22 @@
+# JACI Lmod configuration for JCSDA spack-stack.
+#
+# Status:
+#   Initial skeleton. The final hierarchy and projections must be verified after
+#   generating modules for the GCC 13.2 target.
+
+modules:
+  default:
+    enable:
+      - lmod
+    lmod:
+      core_compilers:
+        - gcc@13.2.0
+      hierarchy:
+        - mpi
+      hash_length: 0
+      all:
+        autoload: direct
+      projections:
+        all: '{name}/{version}'
+      # TODO: confirm final projections for stack-gcc, stack-cray-mpich and
+      # jedi-mpas-env after the first GCC 13.2 installation.
