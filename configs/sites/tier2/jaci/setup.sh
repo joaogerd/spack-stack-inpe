@@ -1,8 +1,3 @@
-cd /caminho/para/spack-stack-inpe
-
-mkdir -p configs/sites/tier2/jaci
-
-cat > configs/sites/tier2/jaci/setup.sh <<'EOF'
 # JACI setup for spack-stack
 
 module load PrgEnv-gnu/8.6.0
@@ -26,10 +21,3 @@ export MPIF90=ftn
 export JACI_SITE_NAME=jaci
 export JACI_TARGET_COMPILER=gcc-native/13.2
 export JACI_TARGET_MPI=cray-mpich/8.1.31
-EOF
-
-chmod +x configs/sites/tier2/jaci/setup.sh
-
-git add configs/sites/tier2/jaci/setup.sh
-git commit -m "Add JACI site setup script"
-git push
