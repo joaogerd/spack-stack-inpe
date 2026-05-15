@@ -1,48 +1,49 @@
-# JACI MPAS-JEDI spack.yaml for JCSDA spack-stack
+# Experimental JACI MPAS-JEDI GCC 13 spack.yaml
 #
 # Purpose
 # -------
-# Define the target spack-stack environment for MONAN/MPAS-JEDI on JACI using
-# the GCC 13.2 + Cray MPICH stack.
+# Document a possible GCC 13.2 MPAS-JEDI stack target for JACI.
 #
 # Context
 # -------
-# This environment is meant to be copied into the JCSDA `spack-stack` tree and
-# concretized there, after the JACI site configuration has been installed under:
+# This file is intentionally disabled. It must not be used as the production
+# JACI spack-stack environment.
 #
-#   configs/sites/tier2/jaci/
+# The current validated production target is:
+#
+#   PrgEnv-gnu/8.6.0
+#   gcc-native/12.3
+#   cray-mpich/8.1.31
+#   CrayPE drivers cc, CC and ftn
+#
+# The GCC 13.2 module exists on JACI, but Cray MPICH still points to the GNU
+# 12.3 backend:
+#
+#   CRAY_MPICH_DIR=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+#   CRAY_MPICH_PREFIX=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+#
+# The following path does not exist on JACI:
+#
+#   /opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
 #
 # Validation status
 # -----------------
-# This is an initial skeleton. It is not yet the final environment used for a
-# validated GCC 13.2 stack. The previous discovery workflow validated a GCC 12.3
-# diagnostic baseline with MPAS-JEDI 61/62 CTest results.
+# Not validated.
 #
 # How to use
 # ----------
-# Copy this file into a JCSDA spack-stack environment directory, activate it and
-# concretize manually:
+# Do not concretize this file directly. Use the validated GCC 12 target instead:
 #
-#   mkdir -p <spack-stack>/envs/jaci-mpas-jedi-gcc13-craympich
-#   cp spack.yaml <spack-stack>/envs/jaci-mpas-jedi-gcc13-craympich/spack.yaml
-#   spack env activate <spack-stack>/envs/jaci-mpas-jedi-gcc13-craympich
-#   spack concretize -f
+#   envs/jaci/mpas-jedi-gcc12-craympich/spack.yaml
+#
+# If a GCC 13.2 target is pursued later, replace the disabled skeleton below
+# with a fully validated environment and a confirmed Cray MPICH backend.
 #
 # Open items
 # ----------
-# 1. Replace the specs below with the exact spack-stack environment used for
-#    the final GCC 13.2 validation.
-# 2. Confirm whether the target environment should be named `jedi-mpas-env`,
-#    `mpas-jedi-env` or another institutional name.
-# 3. Confirm all variants required by MONAN/MPAS-JEDI.
+# 1. Confirm whether a GNU 13.2 Cray MPICH backend will be provided on JACI.
+# 2. Decide whether a hybrid GCC 13.2 + GNU 12.3 Cray MPICH backend is acceptable.
+# 3. Run full spack-stack and MONAN/MPAS-JEDI validation before enabling.
 
-spack:
-  concretizer:
-    unify: true
-
-  view: false
-
-  specs:
-    # TODO: replace with the final spack-stack environment specification.
-    # The placeholder below records the intended target only.
-    - jedi-mpas-env%gcc@13.2.0 ^cray-mpich@8.1.31
+# This file is intentionally not a valid active environment.
+# Use envs/jaci/mpas-jedi-gcc12-craympich/spack.yaml for the validated target.
