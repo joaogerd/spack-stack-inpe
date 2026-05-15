@@ -36,6 +36,15 @@
 # `self.spec["mpi"].mpicc`, but it resolves to the overlay shim instead of the
 # raw Cray MPICH wrapper.
 #
+# The overlay intentionally supports MPICH-style query options such as:
+#
+#   -show
+#   -compile-info
+#   -link-info
+#
+# It does not implement OpenMPI-specific `-showme:*` options, because those are
+# not part of the Cray MPICH interface and should not be used to validate JACI.
+#
 # The overlay also symlinks include/lib/share/etc/man from the real Cray MPICH
 # prefix, so it behaves like a valid MPI prefix for Spack package logic.
 #
@@ -116,48 +125,17 @@ show_link_flags() {
   echo
 }
 
-show_incdirs() {
-  normalize_cray_opts | tr ' ' '\n' | grep '^-I' | sed 's/^-I//' | tr '\n' ' ' || true
-  echo
-}
-
-show_libdirs() {
-  normalize_cray_opts | tr ' ' '\n' | grep '^-L' | sed 's/^-L//' | tr '\n' ' ' || true
-  echo
-}
-
-show_libs() {
-  normalize_cray_opts | tr ' ' '\n' | grep '^-l' | sed 's/^-l//' | tr '\n' ' ' || true
-  echo
-}
-
 case "${1:-}" in
-  -show|--show|-showme|--showme|-compile-info|--compile-info)
+  -show|--show)
     echo "${base} $(normalize_cray_opts)"
     exit 0
     ;;
-  -showme:command|--showme:command)
-    echo "${base}"
-    exit 0
-    ;;
-  -showme:compile|--showme:compile)
+  -compile-info|--compile-info)
     show_compile_flags
     exit 0
     ;;
-  -showme:link|--showme:link|-link-info|--link-info)
+  -link-info|--link-info)
     show_link_flags
-    exit 0
-    ;;
-  -showme:incdirs|--showme:incdirs)
-    show_incdirs
-    exit 0
-    ;;
-  -showme:libdirs|--showme:libdirs)
-    show_libdirs
-    exit 0
-    ;;
-  -showme:libs|--showme:libs)
-    show_libs
     exit 0
     ;;
 esac
