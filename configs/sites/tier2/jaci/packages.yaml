@@ -1,0 +1,18 @@
+# Common JACI package configuration for JCSDA spack-stack.
+#
+# Status:
+#   Initial skeleton. Keep only compiler-independent package preferences here.
+#   Compiler-specific externals should go to packages_<compiler>.yaml.
+
+packages:
+  all:
+    require: []
+    providers:
+      mpi: [cray-mpich]
+
+  # TODO: confirm whether Cray LibSci should be used as BLAS/LAPACK provider
+  # for the final GCC 13.2 target. Do not enable before validation.
+  # all:
+  #   providers:
+  #     blas: [cray-libsci]
+  #     lapack: [cray-libsci]
