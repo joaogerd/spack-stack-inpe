@@ -26,16 +26,15 @@ configs/sites/tier2/jaci/
 ├── mirrors.yaml
 ├── modules.yaml
 ├── packages.yaml
+├── packages_gcc-12.3.yaml
 ├── packages_gcc-13.2.yaml
 ├── setup.sh
 └── README.md
 ```
 
-## Current status
+## Current validated target
 
-The current repository contains the initial manual and skeleton site structure.
-
-Confirmed baseline from previous validation:
+The current production target for JACI is:
 
 ```text
 spack-stack release/2.1
@@ -43,17 +42,38 @@ PrgEnv-gnu/8.6.0
 gcc-native/12.3
 cray-mpich/8.1.31
 CrayPE drivers cc, CC, ftn
+Tcl modulefiles under $env/modules
 ```
 
-Institutional target to validate next:
+This target was validated during the JACI discovery workflow and supported a reduced MPAS-JEDI-only build and PBS/PALS test execution.
+
+The MPAS-JEDI validation status associated with this stack was:
 
 ```text
-spack-stack release/2.1
-PrgEnv-gnu/8.6.0
-gcc-native/13.2
-cray-mpich/8.1.31
-CrayPE drivers cc, CC, ftn
+61/62 MPAS-JEDI tests passed
+1 stable numerical reference mismatch: mpasjedi_lgetkf_height_vloc
 ```
+
+The remaining failure was reproducible and classified as a platform-specific numerical reference mismatch, not an infrastructure failure.
+
+## Experimental GCC 13.2 target
+
+The `gcc-native/13.2` module exists on JACI, but it is not the current production target for this repository.
+
+With `PrgEnv-gnu/8.6.0`, `gcc-native/13.2` and `cray-mpich/8.1.31` loaded, CrayPE still exports:
+
+```text
+CRAY_MPICH_DIR=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+CRAY_MPICH_PREFIX=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+```
+
+The following path does not exist on JACI:
+
+```text
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
+```
+
+Therefore, GCC 13.2 is kept only as an experimental/hybrid target until a compatible Cray MPICH backend is available or a full explicit validation is performed.
 
 ## Main documentation
 
