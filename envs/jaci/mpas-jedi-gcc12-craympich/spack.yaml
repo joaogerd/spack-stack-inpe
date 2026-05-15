@@ -1,0 +1,55 @@
+# JACI MPAS-JEDI spack.yaml for JCSDA spack-stack
+#
+# Purpose
+# -------
+# Define the target spack-stack environment for MONAN/MPAS-JEDI on JACI using
+# the currently validated GCC 12.3 + Cray MPICH stack.
+#
+# Context
+# -------
+# This environment is meant to be copied into the JCSDA `spack-stack` tree and
+# concretized there, after the JACI site configuration has been installed under:
+#
+#   configs/sites/tier2/jaci/
+#
+# Validation status
+# -----------------
+# This is a skeleton derived from the validated target concept. The exact
+# package list must still be replaced by the full environment definition from
+# the validated JACI stack.
+#
+# The underlying compiler/MPI target has been validated with a reduced
+# MPAS-JEDI-only workflow:
+#
+#   PrgEnv-gnu/8.6.0
+#   gcc-native/12.3
+#   cray-mpich/8.1.31
+#
+# How to use
+# ----------
+# Copy this file into a JCSDA spack-stack environment directory, activate it and
+# concretize manually:
+#
+#   mkdir -p <spack-stack>/envs/jaci-mpas-jedi-gcc12-craympich
+#   cp spack.yaml <spack-stack>/envs/jaci-mpas-jedi-gcc12-craympich/spack.yaml
+#   spack env activate <spack-stack>/envs/jaci-mpas-jedi-gcc12-craympich
+#   spack concretize -f
+#
+# Open items
+# ----------
+# 1. Replace the placeholder specs below with the exact spack-stack environment
+#    used by the validated GCC 12.3 stack.
+# 2. Confirm whether the target environment should be named `jedi-mpas-env`,
+#    `mpas-jedi-env` or another institutional name.
+# 3. Confirm all variants required by MONAN/MPAS-JEDI.
+
+spack:
+  concretizer:
+    unify: true
+
+  view: false
+
+  specs:
+    # TODO: replace with the final spack-stack environment specification.
+    # The placeholder below records the validated compiler/MPI target only.
+    - jedi-mpas-env%gcc@12.3.0 ^cray-mpich@8.1.31+wrappers
