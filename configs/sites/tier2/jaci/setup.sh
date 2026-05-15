@@ -20,9 +20,21 @@
 #
 # Validation status
 # -----------------
-# The CrayPE + Cray MPICH logic was validated during the GCC 12.3 diagnostic
-# baseline. The target documented here is gcc-native/13.2, which is the newer
-# GNU environment currently intended for institutional validation on JACI.
+# This setup uses the validated GNU 12.3 + Cray MPICH target.
+#
+# The newer gcc-native/13.2 module exists on JACI, but cray-mpich/8.1.31 still
+# exports:
+#
+#   CRAY_MPICH_DIR=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+#   CRAY_MPICH_PREFIX=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+#
+# and the following directory does not exist:
+#
+#   /opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
+#
+# Therefore GCC 13.2 is not used here as the production target. A GCC 13.2
+# configuration would be an experimental/hybrid target until explicitly
+# validated.
 #
 # How to use
 # ----------
@@ -42,14 +54,10 @@
 #   SITE_NAME
 #   TARGET_COMPILER
 #   TARGET_MPI
-#
-# Open items
-# ----------
-# The GCC 13.2 target still needs a full spack-stack and MONAN/MPAS-JEDI
-# validation run. If a fallback is needed, the previously validated diagnostic
-# baseline used gcc-native/12.3.
 
 module load PrgEnv-gnu/8.6.0
+module unload gcc-native/13.2 2>/dev/null || true
+module load gcc-native/12.3
 module load craype-x86-turin
 module load cray-mpich/8.1.31
 module load libfabric/1.22.0
@@ -68,5 +76,5 @@ export MPIF77=ftn
 export MPIF90=ftn
 
 export SITE_NAME=jaci
-export TARGET_COMPILER=gcc-native/13.2
+export TARGET_COMPILER=gcc-native/12.3
 export TARGET_MPI=cray-mpich/8.1.31
