@@ -1,106 +1,72 @@
-# JACI environment site packages include
-#
-# Purpose
-# -------
-# Store package externals and preferences specific to the validated JACI
-# environment instance.
-#
-# Context
-# -------
-# The validated environment uses:
-#
-#   include:
-#   - site
-#   - common
-#
-# This file corresponds to the `site/packages.yaml` include layer from the
-# validated environment:
-#
-#   envs/mpas-bundle-jaci-gnu12/site/packages.yaml
-#
-# Validation status
-# -----------------
-# This file is reconstructed from the JACI configuration audit and from the
-# validated GCC 12.3 + Cray MPICH target.
-#
-# The critical validated behavior is:
-#
-#   1. GCC is represented as an external package, not through a populated
-#      compilers.yaml.
-#   2. Cray MPICH is external with `+wrappers`.
-#   3. MPI compiler variables point to CrayPE drivers cc, CC and ftn.
-#
-# Open items
-# ----------
-# 1. Compare this file against the original validated
-#    envs/mpas-bundle-jaci-gnu12/site/packages.yaml.
-# 2. Confirm whether additional site-specific package rules existed in the
-#    original file.
-# 3. Keep GCC 13.2 out of this production include layer unless explicitly
-#    validated.
 
 packages:
-  c:
-    require:
+    c:
+      require:
       - one_of:
-          - gcc@12.3.0
+        - gcc@12.3.0
 
-  cxx:
-    require:
+    cxx:
+      require:
       - one_of:
-          - gcc@12.3.0
+        - gcc@12.3.0
 
-  fortran:
-    require:
+    fortran:
+      require:
       - one_of:
-          - gcc@12.3.0
+        - gcc@12.3.0
 
-  gcc:
-    buildable: false
-    require:
+    gcc:
+      buildable: false
+      require:
       - one_of:
-          - gcc@12.3.0 languages='c,c++,fortran'
-    externals:
+        - gcc@12.3.0 languages='c,c++,fortran'
+      externals:
       - spec: gcc@12.3.0 languages:='c,c++,fortran'
         prefix: /opt/cray/pe/gcc-native/12
         modules:
-          - PrgEnv-gnu/8.6.0
-          - gcc-native/12.3
-          - craype-x86-turin
+        - PrgEnv-gnu/8.6.0
+        - gcc-native/12.3
+        - craype-x86-turin
         extra_attributes:
           compilers:
             c: /opt/cray/pe/gcc-native/12/bin/gcc
             cxx: /opt/cray/pe/gcc-native/12/bin/g++
             fortran: /opt/cray/pe/gcc-native/12/bin/gfortran
+    all:
+      providers:
+        mpi:
+        - cray-mpich
+        zlib-api:
+        - zlib
 
-  mpi:
-    buildable: false
-    require:
+    mpi:
+      buildable: false
+      require:
       - one_of:
-          - cray-mpich@8.1.31+wrappers
+        - cray-mpich@8.1.31+wrappers
 
-  openmpi:
-    buildable: false
+    openmpi:
+      buildable: false
 
-  mpich:
-    buildable: false
+    mpich:
+      buildable: false
 
-  cray-mpich:
-    buildable: false
-    variants: +wrappers
-    require:
+    cray-mpich:
+      buildable: false
+      variants: +wrappers
+      require:
       - one_of:
-          - cray-mpich@8.1.31+wrappers
-    externals:
+        - cray-mpich@8.1.31+wrappers
+      externals:
       - spec: cray-mpich@8.1.31+wrappers
         prefix: /opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
         modules:
-          - PrgEnv-gnu/8.6.0
-          - gcc-native/12.3
-          - craype-x86-turin
-          - cray-mpich/8.1.31
-          - libfabric/1.22.0
-          - cray-pals/1.6.1
+        - PrgEnv-gnu/8.6.0
+        - gcc-native/12.3
+        - craype-x86-turin
+        - cray-mpich/8.1.31
+        - libfabric/1.22.0
+        - cray-pals/1.6.1
         extra_attributes:
           environment:
             set:
