@@ -5,20 +5,20 @@
 # Define compiler-independent package preferences for the JACI site.
 # Compiler-specific externals must be placed in files such as:
 #
+#   packages_gcc-12.3.yaml
 #   packages_gcc-13.2.yaml
 #
 # Context
 # -------
-# JACI uses CrayPE and Cray MPICH. The MPI provider for the target stack should
-# be `cray-mpich`, but the actual external prefix depends on the loaded GNU
+# JACI uses CrayPE and Cray MPICH. The MPI provider for the validated target is
+# `cray-mpich`. The actual Cray MPICH external prefix depends on the compiler
 # backend and therefore belongs in the compiler-specific package file.
 #
 # Validation status
 # -----------------
-# This is an initial skeleton. The provider choice reflects the validated
-# CrayPE/Cray MPICH strategy from the discovery workflow. Additional providers,
-# especially BLAS/LAPACK through Cray LibSci, are not enabled here until they
-# are explicitly validated for the target stack.
+# The validated JACI baseline uses gcc-native/12.3 and cray-mpich/8.1.31. The
+# newer gcc-native/13.2 target is not currently production-ready because the
+# loaded Cray MPICH module still points to the GNU 12.3 MPICH backend.
 #
 # How to use
 # ----------
@@ -28,8 +28,9 @@
 #
 # Open items
 # ----------
-# 1. Confirm if Cray LibSci should be used as BLAS/LAPACK provider.
-# 2. Confirm if any packages should be globally non-buildable.
+# 1. Confirm whether BLAS/LAPACK should remain OpenBLAS, as used in the
+#    validated flow, or whether Cray LibSci should be evaluated separately.
+# 2. Confirm whether any additional packages should be globally non-buildable.
 # 3. Keep NetCDF, HDF5, PIO and related scientific libraries buildable unless
 #    they are intentionally validated as externals.
 
@@ -38,10 +39,14 @@ packages:
     require: []
     providers:
       mpi: [cray-mpich]
+      blas: [openblas]
+      lapack: [openblas]
 
-  # TODO: confirm whether Cray LibSci should be used as BLAS/LAPACK provider
-  # for the final GCC 13.2 target. Do not enable before validation.
-  # all:
-  #   providers:
-  #     blas: [cray-libsci]
-  #     lapack: [cray-libsci]
+  openmpi:
+    buildable: false
+
+  mpich:
+    buildable: false
+
+  # Cray LibSci is intentionally not enabled here. The validated flow used
+  # OpenBLAS. Cray LibSci should be evaluated only in a separate experiment.
