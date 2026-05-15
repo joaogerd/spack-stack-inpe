@@ -1,8 +1,39 @@
-# JACI Lmod configuration for JCSDA spack-stack.
+# JACI modules.yaml for JCSDA spack-stack
 #
-# Status:
-#   Initial skeleton. The final hierarchy and projections must be verified after
-#   generating modules for the GCC 13.2 target.
+# Purpose
+# -------
+# Define the Lmod module generation policy for the JACI site.
+#
+# Context
+# -------
+# The validated GCC 12.3 diagnostic stack generated hierarchical modules such
+# as `stack-gcc`, `stack-cray-mpich` and `jedi-mpas-env`. The GCC 13.2 target
+# should preserve the same operational idea, but the exact module names and
+# projections must be verified after the first GCC 13.2 build.
+#
+# Validation status
+# -----------------
+# This is an initial skeleton. It is not yet a final production modules.yaml.
+#
+# How to use
+# ----------
+# After installing the stack, regenerate Lmod files with:
+#
+#   spack module lmod refresh -y
+#
+# Then inspect generated modules with:
+#
+#   module avail stack-gcc
+#   module avail stack-cray-mpich
+#   module avail jedi-mpas-env
+#
+# Open items
+# ----------
+# 1. Confirm whether `gcc@13.2.0` is the exact compiler spec used by Spack.
+# 2. Confirm projections required by spack-stack release/2.1.
+# 3. Confirm whether package-specific projections are needed for stack modules.
+# 4. Verify that generated modulefiles do not reference missing dependency
+#    module names.
 
 modules:
   default:
