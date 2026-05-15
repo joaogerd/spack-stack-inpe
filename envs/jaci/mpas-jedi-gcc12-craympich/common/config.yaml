@@ -1,0 +1,31 @@
+# JACI environment common config include
+#
+# Purpose
+# -------
+# Store common Spack configuration used by the validated JACI environment.
+#
+# Context
+# -------
+# This file corresponds to the `common/config.yaml` include layer used by the
+# validated environment.
+#
+# Validation status
+# -----------------
+# Values are reconstructed from the JACI `spack config blame config` audit.
+#
+# Open items
+# ----------
+# 1. Confirm these settings against the original common/config.yaml file.
+# 2. Confirm that SPACK_STACK_DIR is always defined by the JCSDA setup.sh before
+#    this file is used.
+
+config:
+  install_hash_length: 7
+  projections:
+    all: '{compiler.name}/{compiler.version}/{name}-{version}-{hash}'
+  build_stage: ${SPACK_STACK_DIR}/cache/build_stage
+  test_stage: ${SPACK_STACK_DIR}/cache/test_stage
+  source_cache: ${SPACK_STACK_DIR}/cache/source_cache
+  misc_cache: ${SPACK_STACK_DIR}/cache/misc_cache
+  connect_timeout: 60
+  deprecated: true
