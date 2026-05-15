@@ -6,13 +6,13 @@ This document describes the manual procedure to prepare a JCSDA `spack-stack` en
 
 The goal of this repository is not to replace the JCSDA `spack-stack` repository. Instead, this repository stores the INPE/JACI site configuration and the operational steps needed to reproduce a validated stack on JACI.
 
-The intended final layout follows the JCSDA site convention:
+The intended layout follows the JCSDA site convention:
 
 ```text
 configs/sites/<tier>/<site>/
 ```
 
-For JACI, the proposed site layout is:
+For JACI, the site layout is:
 
 ```text
 configs/sites/tier2/jaci/
@@ -20,18 +20,19 @@ configs/sites/tier2/jaci/
 ├── mirrors.yaml
 ├── modules.yaml
 ├── packages.yaml
+├── packages_gcc-12.3.yaml
 ├── packages_gcc-13.2.yaml
 ├── setup.sh
 └── README.md
 ```
 
-At this stage, this manual records the expected operational flow. The actual YAML files still need to be populated from the validated JACI configuration.
+The current production target is GCC 12.3 with Cray MPICH 8.1.31. The GCC 13.2 file is kept only as experimental documentation until a compatible Cray MPICH backend is confirmed or a complete explicit validation is performed.
 
 ## 2. Current technical status
 
-### Confirmed
+### Validated target
 
-A previous discovery workflow validated the following baseline on JACI:
+The validated JACI stack target is:
 
 ```text
 spack-stack release/2.1
@@ -39,6 +40,7 @@ PrgEnv-gnu/8.6.0
 gcc-native/12.3
 cray-mpich/8.1.31
 CrayPE compiler drivers: cc, CC, ftn
+Tcl modulefiles under $env/modules
 ```
 
 Using that stack, a reduced MPAS-JEDI-only `jedi-bundle` path was configured, built and tested through PBS/PALS. The MPAS-JEDI CTest result was:
@@ -50,17 +52,24 @@ Using that stack, a reduced MPAS-JEDI-only `jedi-bundle` path was configured, bu
 
 The remaining failure was reproducible on JACI and was classified as a stable platform-specific numerical mismatch, not as an infrastructure failure.
 
-### Target for the institutional configuration
+### Experimental GCC 13.2 target
 
-The preferred target for `spack-stack-inpe` is to use the newest GNU environment currently available by default on JACI:
+The `gcc-native/13.2` module exists on JACI, but it is not the current production target for this repository.
+
+With `PrgEnv-gnu/8.6.0`, `gcc-native/13.2` and `cray-mpich/8.1.31` loaded, CrayPE still exports:
 
 ```text
-PrgEnv-gnu/8.6.0
-gcc-native/13.2
-cray-mpich/8.1.31
+CRAY_MPICH_DIR=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+CRAY_MPICH_PREFIX=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
 ```
 
-This target still needs a full validation run. The GCC 12.3 environment remains a confirmed diagnostic baseline, not necessarily the final institutional choice.
+The following path does not exist on JACI:
+
+```text
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
+```
+
+Therefore, GCC 13.2 is considered experimental/hybrid and must not be used as the production stack target until this is explicitly validated.
 
 ## 3. Important CrayPE rule for JACI
 
@@ -83,18 +92,12 @@ or their full paths:
 Do not force builds to use the raw Cray MPICH wrappers directly, such as:
 
 ```text
-/opt/cray/pe/mpich/8.1.31/ofi/gnu/<version>/bin/mpicc
-/opt/cray/pe/mpich/8.1.31/ofi/gnu/<version>/bin/mpicxx
-/opt/cray/pe/mpich/8.1.31/ofi/gnu/<version>/bin/mpifort
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/bin/mpicc
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/bin/mpicxx
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/bin/mpifort
 ```
 
-When CrayPE is active, those wrappers can trigger errors of the form:
-
-```text
-CrayPE is loaded, use cc/CC/ftn instead of mpicc/mpicxx/mpifort
-```
-
-Therefore, in the JACI site configuration and in the runtime environment, MPI compiler variables must resolve to `cc`, `CC` and `ftn`.
+When CrayPE is active, those wrappers can trigger errors indicating that `cc`, `CC` and `ftn` must be used instead. Therefore, in the JACI site configuration and in the runtime environment, MPI compiler variables must resolve to `cc`, `CC` and `ftn`.
 
 ## 4. Directory convention used in this manual
 
@@ -102,9 +105,9 @@ Set a working area. The paths below are examples and should be adapted to the us
 
 ```bash
 export PROJECT_ROOT="/p/projetos/monan_das/$USER"
-export WORK_ROOT="$PROJECT_ROOT/work/jaci-spack-stack-work-release-2.1-gcc13"
-export INSTALL_ROOT="$PROJECT_ROOT/env/spack-stack/install-release-2.1-gcc13"
-export LOG_ROOT="$PROJECT_ROOT/logs/jaci-spack-stack-release-2.1-gcc13"
+export WORK_ROOT="$PROJECT_ROOT/work/jaci-spack-stack-work-release-2.1-gcc12"
+export INSTALL_ROOT="$PROJECT_ROOT/env/spack-stack/install-release-2.1-gcc12"
+export LOG_ROOT="$PROJECT_ROOT/logs/jaci-spack-stack-release-2.1-gcc12"
 ```
 
 Create the directories:
@@ -121,14 +124,16 @@ Validate:
 ls -ld "$WORK_ROOT" "$INSTALL_ROOT" "$LOG_ROOT"
 ```
 
-## 5. Load the base JACI environment
+## 5. Load the validated base JACI environment
 
-For the GCC 13.2 target:
+Use the validated GCC 12.3 target:
 
 ```bash
 module purge
 
 module load PrgEnv-gnu/8.6.0
+module unload gcc-native/13.2 2>/dev/null || true
+module load gcc-native/12.3
 module load craype-x86-turin
 module load cray-mpich/8.1.31
 module load libfabric/1.22.0
@@ -166,23 +171,23 @@ Expected CrayPE compiler driver paths:
 /opt/cray/pe/craype/2.7.33/bin/ftn
 ```
 
-Expected GNU backend for the target configuration:
+Expected GNU backend:
 
 ```text
-gcc-native/13.2
+gcc-native/12.3
 ```
 
-If a future fallback baseline is required, the previously validated GCC 12.3 environment requires unloading the default GNU backend first:
+Expected Cray MPICH prefix:
 
 ```bash
-module purge
-module load PrgEnv-gnu/8.6.0
-module unload gcc-native/13.2
-module load gcc-native/12.3
-module load craype-x86-turin
-module load cray-mpich/8.1.31
-module load libfabric/1.22.0
-module load cray-pals/1.6.1
+echo "$CRAY_MPICH_DIR"
+echo "$CRAY_MPICH_PREFIX"
+```
+
+Expected values:
+
+```text
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
 ```
 
 ## 6. Export compiler variables
@@ -253,7 +258,7 @@ cd "$WORK_ROOT"
 git clone https://github.com/joaogerd/spack-stack-inpe.git
 ```
 
-The JACI site configuration should be stored in this repository under:
+The JACI site configuration is stored under:
 
 ```text
 configs/sites/tier2/jaci/
@@ -281,41 +286,25 @@ config.yaml
 mirrors.yaml
 modules.yaml
 packages.yaml
+packages_gcc-12.3.yaml
 packages_gcc-13.2.yaml
 setup.sh
 README.md
 ```
 
+The current production compiler-specific file is:
+
+```text
+packages_gcc-12.3.yaml
+```
+
 ## 10. Source the JACI site setup
 
-The canonical site environment setup should be:
+The canonical site environment setup is:
 
 ```bash
 cd "$WORK_ROOT/spack-stack"
 source configs/sites/tier2/jaci/setup.sh
-```
-
-The `setup.sh` file should do the equivalent of:
-
-```bash
-module purge
-module load PrgEnv-gnu/8.6.0
-module load craype-x86-turin
-module load cray-mpich/8.1.31
-module load libfabric/1.22.0
-module load cray-pals/1.6.1
-
-export CC=/opt/cray/pe/craype/2.7.33/bin/cc
-export CXX=/opt/cray/pe/craype/2.7.33/bin/CC
-export FC=/opt/cray/pe/craype/2.7.33/bin/ftn
-export F77=/opt/cray/pe/craype/2.7.33/bin/ftn
-export F90=/opt/cray/pe/craype/2.7.33/bin/ftn
-
-export MPICC="$CC"
-export MPICXX="$CXX"
-export MPIFC="$FC"
-export MPIF77="$FC"
-export MPIF90="$FC"
 ```
 
 Validate:
@@ -328,6 +317,15 @@ which ftn
 echo "$CC"
 echo "$CXX"
 echo "$FC"
+echo "$TARGET_COMPILER"
+echo "$TARGET_MPI"
+```
+
+Expected metadata:
+
+```text
+TARGET_COMPILER=gcc-native/12.3
+TARGET_MPI=cray-mpich/8.1.31
 ```
 
 ## 11. Inspect the JACI YAML files
@@ -354,37 +352,29 @@ This file may initially be minimal, but it should exist to follow the JCSDA site
 ### 11.3 modules.yaml
 
 ```bash
-grep -nE "lmod|hierarchy|stack-gcc|cray-mpich|jedi-mpas-env" \
+grep -nE "tcl|projections|mpi|autoload|ROOT" \
   configs/sites/tier2/jaci/modules.yaml
 ```
 
-The module configuration should generate the expected hierarchical modules for the stack.
+The validated module configuration uses Tcl modulefiles under `$env/modules`.
 
 ### 11.4 packages.yaml
 
 ```bash
-grep -nE "providers|mpi|blas|lapack|cray-mpich|libfabric|cray-libsci" \
+grep -nE "providers|mpi|blas|lapack|openblas|cray-mpich" \
   configs/sites/tier2/jaci/packages.yaml
 ```
 
 This file should contain common package rules not specific to one compiler backend.
 
-### 11.5 packages_gcc-13.2.yaml
+### 11.5 packages_gcc-12.3.yaml
 
 ```bash
-grep -nE "cray-mpich|libfabric|libsci|external|prefix|modules" \
-  configs/sites/tier2/jaci/packages_gcc-13.2.yaml
+grep -nE "gcc@12.3.0|cray-mpich|MPICC|MPICXX|MPIFC|prefix|modules" \
+  configs/sites/tier2/jaci/packages_gcc-12.3.yaml
 ```
 
-Compiler-specific externals and paths belong here.
-
-For GCC 13.2, the Cray MPICH path is expected to follow the GNU 13.2 backend layout, such as:
-
-```text
-/opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
-```
-
-This must be verified on JACI before treating it as confirmed.
+This file should contain the validated GCC 12.3 compiler external and the Cray MPICH external with `+wrappers`, using `cc`, `CC` and `ftn` through `extra_attributes.environment.set`.
 
 ## 12. Initialize Spack from the JCSDA spack-stack tree
 
@@ -410,25 +400,25 @@ spack --version
 
 ## 13. Create or install the JACI environment
 
-The final environment definition should be stored in this repository, for example:
+The environment definition for the validated target is stored in this repository as:
 
 ```text
-envs/jaci/mpas-jedi-gcc13-craympich/spack.yaml
+envs/jaci/mpas-jedi-gcc12-craympich/spack.yaml
 ```
 
 Install it into the JCSDA `spack-stack` tree:
 
 ```bash
-mkdir -p "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich"
+mkdir -p "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich"
 
-cp "$WORK_ROOT/spack-stack-inpe/envs/jaci/mpas-jedi-gcc13-craympich/spack.yaml" \
-   "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich/spack.yaml"
+cp "$WORK_ROOT/spack-stack-inpe/envs/jaci/mpas-jedi-gcc12-craympich/spack.yaml" \
+   "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich/spack.yaml"
 ```
 
 Activate the environment:
 
 ```bash
-spack env activate "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich"
+spack env activate "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich"
 ```
 
 Validate:
@@ -440,7 +430,7 @@ spack env status
 Expected active environment:
 
 ```text
-jaci-mpas-jedi-gcc13-craympich
+jaci-mpas-jedi-gcc12-craympich
 ```
 
 ## 14. Check that the site configuration is visible
@@ -460,31 +450,25 @@ The output should reference files from:
 configs/sites/tier2/jaci/
 ```
 
+and/or the active environment-specific `site/` and `common/` configuration directories generated by spack-stack.
+
 If not, the JACI site configuration is not being applied correctly.
 
-## 15. Check compilers
+## 15. Check compiler handling
 
-```bash
-spack compiler list
-```
+The validated flow does not rely on a traditional populated `compilers.yaml`. The compiler is represented through package externals, especially the `gcc` package external in `packages_gcc-12.3.yaml`.
 
-If the compiler must be detected:
-
-```bash
-spack compiler find
-spack compiler list
-```
-
-Then inspect:
+Check:
 
 ```bash
 spack config blame compilers
+spack config blame packages | grep -nE "gcc@12.3.0|cray-mpich|MPICC|MPICXX|MPIFC"
 ```
 
 Critical rule:
 
 ```text
-Do not accept a compiler configuration that causes builds to use raw mpicc/mpicxx/mpifort instead of CrayPE cc/CC/ftn.
+Do not accept a configuration that causes builds to use raw mpicc/mpicxx/mpifort instead of CrayPE cc/CC/ftn.
 ```
 
 ## 16. Concretize the environment
@@ -509,11 +493,9 @@ spack find -v mpi
 Expected result:
 
 ```text
-MPI resolves to cray-mpich@8.1.31.
-The compiler backend is the intended GNU/CrayPE configuration.
+MPI resolves to cray-mpich@8.1.31+wrappers.
+The compiler backend is gcc@12.3.0 through the JACI GCC external.
 ```
-
-For the GCC 13.2 target, this still needs to be confirmed by a full build.
 
 ## 17. Install the environment
 
@@ -533,37 +515,36 @@ List installed packages:
 spack find
 ```
 
-## 18. Generate Lmod modulefiles
+## 18. Generate Tcl modulefiles
+
+The validated JACI stack used Tcl modules.
 
 ```bash
-spack module lmod refresh -y 2>&1 | tee "$LOG_ROOT/spack_module_refresh.log"
+spack module tcl refresh -y 2>&1 | tee "$LOG_ROOT/spack_module_refresh.log"
 ```
 
 Find generated module directories:
 
 ```bash
-find "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich" \
-  -type d \( -name modules -o -name Core \) | sort
+find "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich" \
+  -type d -name modules | sort
 ```
 
-Find expected modules:
+Find generated modules:
 
 ```bash
-find "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich/modules" \
-  -type f | grep -E "stack-gcc|stack-cray-mpich|jedi-mpas-env"
+find "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich/modules" \
+  -type f | sort | head -n 100
 ```
 
-Expected modules:
+Expected projection style:
 
 ```text
-stack-gcc/<gcc-version>
-stack-cray-mpich/8.1.31
-jedi-mpas-env/1.0.0
+cray-mpich/8.1.31/gcc/12.3.0/<package>/<version>
+gcc/12.3.0/<package>/<version>
 ```
 
-The exact `stack-gcc` version string must be verified after module generation.
-
-## 19. Load the generated stack modules
+## 19. Load generated stack modules
 
 Open a fresh login shell or clean the module environment.
 
@@ -572,28 +553,27 @@ module purge
 source "$WORK_ROOT/spack-stack/configs/sites/tier2/jaci/setup.sh"
 ```
 
-Add module paths:
+Add the Tcl module path:
 
 ```bash
-module use "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich/modules/Core"
-module use "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc13-craympich/modules"
+module use "$WORK_ROOT/spack-stack/envs/jaci-mpas-jedi-gcc12-craympich/modules"
 ```
 
 Inspect modules:
 
 ```bash
-module avail stack-gcc
-module avail stack-cray-mpich
-module avail jedi-mpas-env
+module avail
 ```
 
-Load modules. Adjust the exact version if needed:
+Load the required stack modules according to the generated names. For example, the validated discovery stack included modules such as:
 
-```bash
-module load stack-gcc/13.2.0
-module load stack-cray-mpich/8.1.31
-module load jedi-mpas-env/1.0.0
+```text
+stack-gcc/12.3.0
+stack-cray-mpich/8.1.31
+jedi-mpas-env/1.0.0
 ```
+
+The exact names must be confirmed from `module avail` after module generation.
 
 Validate:
 
@@ -682,15 +662,16 @@ The JACI stack is considered usable when the following are true:
 ```text
 1. spack-stack release/2.1 is checked out.
 2. configs/sites/tier2/jaci is installed in the spack-stack tree.
-3. setup.sh loads PrgEnv-gnu, craype-x86-turin, cray-mpich, libfabric and cray-pals.
-4. cc, CC and ftn are used as C, C++ and Fortran compilers.
-5. MPI resolves to cray-mpich@8.1.31.
-6. spack concretize completes successfully.
-7. spack install completes successfully.
-8. Lmod modulefiles are generated.
-9. stack-gcc, stack-cray-mpich and jedi-mpas-env can be loaded.
-10. python, mpi4py, netCDF4, cmake and ecbuild are available.
-11. CMake FindMPI resolves to cc, CC and ftn.
+3. setup.sh loads PrgEnv-gnu, gcc-native/12.3, craype-x86-turin, cray-mpich, libfabric and cray-pals.
+4. cc, CC and ftn are used as C, C++ and Fortran compiler drivers.
+5. MPI resolves to cray-mpich@8.1.31+wrappers.
+6. MPICC, MPICXX and MPIFC resolve to cc, CC and ftn.
+7. spack concretize completes successfully.
+8. spack install completes successfully.
+9. Tcl modulefiles are generated under $env/modules.
+10. stack modules can be loaded from the generated module tree.
+11. python, mpi4py, netCDF4, cmake and ecbuild are available.
+12. CMake FindMPI resolves to cc, CC and ftn.
 ```
 
 ## 23. Boundary with MONAN-bundle
@@ -718,9 +699,9 @@ https://github.com/GAD-DIMNT-CPTEC/MONAN-bundle
 ## 24. Known open items
 
 ```text
-1. The GCC 13.2 target still requires a full spack-stack build and MPAS-JEDI validation.
-2. The GCC 12.3 baseline is validated but should not automatically become the final institutional target.
-3. The actual JACI YAML files must be extracted from the validated configuration and adapted to the JCSDA site layout.
-4. The exact generated module names for GCC 13.2 must be verified.
+1. The current production target is GCC 12.3 + Cray MPICH 8.1.31.
+2. GCC 13.2 exists on JACI, but it is experimental because Cray MPICH still points to the GNU 12.3 backend.
+3. The current spack.yaml is still a documented skeleton and must be replaced by the exact validated environment specification.
+4. The config.yaml install tree should be finalized for institutional use.
 5. A future INPE mirror/buildcache policy should be added to mirrors.yaml.
 ```
