@@ -2,52 +2,57 @@
 #
 # Purpose
 # -------
-# Define the Lmod module generation policy for the JACI site.
+# Define the module generation policy for the JACI site.
 #
 # Context
 # -------
-# The validated GCC 12.3 diagnostic stack generated hierarchical modules such
-# as `stack-gcc`, `stack-cray-mpich` and `jedi-mpas-env`. The GCC 13.2 target
-# should preserve the same operational idea, but the exact module names and
-# projections must be verified after the first GCC 13.2 build.
+# The validated JACI stack used Tcl modulefiles, not Lmod. The generated module
+# tree was rooted under the active Spack environment:
+#
+#   $env/modules
+#
+# The validated module layout used hierarchical projections based on compiler
+# and MPI provider.
 #
 # Validation status
 # -----------------
-# This is an initial skeleton. It is not yet a final production modules.yaml.
+# This file follows the module style observed in the validated GCC 12.3 JACI
+# stack. It should be revalidated after migrating the site configuration into
+# this repository and regenerating modules from a clean spack-stack tree.
 #
 # How to use
 # ----------
-# After installing the stack, regenerate Lmod files with:
+# After installing the environment, regenerate modulefiles with:
 #
-#   spack module lmod refresh -y
+#   spack module tcl refresh -y
 #
-# Then inspect generated modules with:
+# Then inspect:
 #
-#   module avail stack-gcc
-#   module avail stack-cray-mpich
-#   module avail jedi-mpas-env
+#   find $SPACK_ENV/modules -type f | sort
+#   module use $SPACK_ENV/modules
+#   module avail
 #
 # Open items
 # ----------
-# 1. Confirm whether `gcc@13.2.0` is the exact compiler spec used by Spack.
-# 2. Confirm projections required by spack-stack release/2.1.
-# 3. Confirm whether package-specific projections are needed for stack modules.
-# 4. Verify that generated modulefiles do not reference missing dependency
+# 1. Confirm that spack-stack release/2.1 still generates the expected Tcl
+#    hierarchy from this file after migration.
+# 2. Confirm whether Lmod should be evaluated later as a separate experiment.
+# 3. Confirm that generated modulefiles do not reference missing dependency
 #    module names.
 
 modules:
   default:
     enable:
-      - lmod
-    lmod:
-      core_compilers:
-        - gcc@13.2.0
-      hierarchy:
-        - mpi
+      - tcl
+    roots:
+      tcl: $env/modules
+    tcl:
+      projections:
+        ^mpi: '{^mpi.name}/{^mpi.version}/{compiler.name}/{compiler.version}/{name}/{version}'
+        all: '{compiler.name}/{compiler.version}/{name}/{version}'
       hash_length: 0
       all:
         autoload: direct
-      projections:
-        all: '{name}/{version}'
-      # TODO: confirm final projections for stack-gcc, stack-cray-mpich and
-      # jedi-mpas-env after the first GCC 13.2 installation.
+        environment:
+          set:
+            '{name}_ROOT': '{prefix}'
