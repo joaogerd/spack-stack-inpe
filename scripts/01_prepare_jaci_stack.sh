@@ -20,9 +20,28 @@
 #   cray-mpich/8.1.31
 #   CrayPE drivers cc, CC and ftn
 #
+# Important CrayPE detail
+# -----------------------
+# The JACI CrayPE environment must not use the raw Cray MPICH wrappers from:
+#
+#   /opt/cray/pe/mpich/.../bin/mpicc
+#   /opt/cray/pe/mpich/.../bin/mpicxx
+#   /opt/cray/pe/mpich/.../bin/mpif90
+#
+# Many Spack package recipes access MPI wrappers through:
+#
+#   self.spec["mpi"].mpicc
+#   self.spec["mpi"].mpicxx
+#   self.spec["mpi"].mpifc
+#
+# To fix this globally, this script creates a Cray MPICH overlay prefix with
+# shim wrappers named mpicc/mpicxx/mpifort that delegate to the correct CrayPE
+# drivers cc/CC/ftn. The external cray-mpich prefix in the copied environment is
+# patched to point to this overlay before concretization.
+#
 # Usage
 # -----
-#   bash scripts/manual/01_prepare_jaci_stack.sh
+#   bash scripts/01_prepare_jaci_stack.sh
 #
 # Optional overrides
 # ------------------
@@ -32,14 +51,6 @@
 #   FRESH_INSTALL=1
 #   SPACK_STACK_REF=release/2.1
 #   SPACK_STACK_INPE_REF=main
-#
-# Important
-# ---------
-# The INPE environment template contains a site/config.yaml. This script patches
-# the copied environment so that config:install_tree:root points to INSTALL_ROOT.
-# Therefore a full fresh package build can be forced with:
-#
-#   FRESH_INSTALL=1 TEST_ID=<new-name> bash scripts/manual/01_prepare_jaci_stack.sh
 #
 # =============================================================================
 
@@ -58,6 +69,11 @@ export SPACK_STACK_INPE_REPO="${SPACK_STACK_INPE_REPO:-https://github.com/joaoge
 export SPACK_STACK_INPE_REF="${SPACK_STACK_INPE_REF:-main}"
 export ENV_NAME="${ENV_NAME:-jaci-mpas-jedi-gcc12-craympich}"
 
+export CRAYPE_CC="${CRAYPE_CC:-/opt/cray/pe/craype/2.7.33/bin/cc}"
+export CRAYPE_CXX="${CRAYPE_CXX:-/opt/cray/pe/craype/2.7.33/bin/CC}"
+export CRAYPE_FC="${CRAYPE_FC:-/opt/cray/pe/craype/2.7.33/bin/ftn}"
+export CRAY_MPICH_OVERLAY_PREFIX="${CRAY_MPICH_OVERLAY_PREFIX:-${WORK_ROOT}/wrappers/cray-mpich-overlay}"
+
 mkdir -p "${WORK_ROOT}" "${LOG_ROOT}"
 
 if [ "${FRESH_INSTALL}" = "1" ]; then
@@ -70,6 +86,7 @@ printf '[INFO] WORK_ROOT=%s\n' "${WORK_ROOT}"
 printf '[INFO] INSTALL_ROOT=%s\n' "${INSTALL_ROOT}"
 printf '[INFO] LOG_ROOT=%s\n' "${LOG_ROOT}"
 printf '[INFO] FRESH_INSTALL=%s\n' "${FRESH_INSTALL}"
+printf '[INFO] CRAY_MPICH_OVERLAY_PREFIX=%s\n' "${CRAY_MPICH_OVERLAY_PREFIX}"
 
 # -----------------------------------------------------------------------------
 # Load validated JACI base environment
@@ -102,11 +119,11 @@ export CXX=CC
 export FC=ftn
 export F77=ftn
 export F90=ftn
-export MPICC=/opt/cray/pe/craype/2.7.33/bin/cc
-export MPICXX=/opt/cray/pe/craype/2.7.33/bin/CC
-export MPIFC=/opt/cray/pe/craype/2.7.33/bin/ftn
-export MPIF77=/opt/cray/pe/craype/2.7.33/bin/ftn
-export MPIF90=/opt/cray/pe/craype/2.7.33/bin/ftn
+export MPICC="${CRAYPE_CC}"
+export MPICXX="${CRAYPE_CXX}"
+export MPIFC="${CRAYPE_FC}"
+export MPIF77="${CRAYPE_FC}"
+export MPIF90="${CRAYPE_FC}"
 
 module list 2>&1 | tee "${LOG_ROOT}/00_module_list_base.txt"
 {
@@ -154,6 +171,17 @@ git rev-parse HEAD | tee "${LOG_ROOT}/02_spack_stack_inpe_commit.txt"
 git status --short | tee "${LOG_ROOT}/02_spack_stack_inpe_status.txt"
 
 # -----------------------------------------------------------------------------
+# Create global CrayPE MPI overlay
+# -----------------------------------------------------------------------------
+
+export REAL_CRAY_MPICH_PREFIX="${CRAY_MPICH_PREFIX:-${CRAY_MPICH_DIR:-/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3}}"
+bash "${WORK_ROOT}/spack-stack-inpe/scripts/create_craype_mpi_overlay.sh"
+
+test -x "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicc"
+test -x "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicxx"
+test -x "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpifort"
+
+# -----------------------------------------------------------------------------
 # Copy INPE JACI site and environment into JCSDA spack-stack
 # -----------------------------------------------------------------------------
 
@@ -173,9 +201,24 @@ cp -a "${WORK_ROOT}/spack-stack-inpe/envs/jaci/mpas-jedi-gcc12-craympich/." \
 sed -i "s|root: .*env/spack-stack.*|root: ${INSTALL_ROOT}|" \
   "envs/${ENV_NAME}/site/config.yaml"
 
-echo "[INFO] Effective site/config.yaml install_tree root:"
+# Patch the copied environment to use the Cray MPICH overlay prefix. This is the
+# key global fix for self.spec["mpi"].mpicc/mpicxx/mpifc on CrayPE.
+sed -i "s|prefix: /opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3|prefix: ${CRAY_MPICH_OVERLAY_PREFIX}|" \
+  "envs/${ENV_NAME}/site/packages.yaml"
+
+# Keep the site template in sync inside the copied spack-stack tree as evidence.
+sed -i "s|prefix: /opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3|prefix: ${CRAY_MPICH_OVERLAY_PREFIX}|" \
+  "configs/sites/tier2/jaci/packages_gcc-12.3.yaml" \
+  "configs/sites/tier2/jaci/packages.yaml" \
+  2>/dev/null || true
+
+echo "[INFO] Effective install tree root:"
 grep -n "root:" "envs/${ENV_NAME}/site/config.yaml" \
   | tee "${LOG_ROOT}/04_effective_install_root.txt"
+
+echo "[INFO] Effective cray-mpich prefix:"
+grep -nA16 "cray-mpich:" "envs/${ENV_NAME}/site/packages.yaml" \
+  | tee "${LOG_ROOT}/04_effective_cray_mpich_external.txt"
 
 find "envs/${ENV_NAME}" -maxdepth 3 -type f | sort \
   | tee "${LOG_ROOT}/04_installed_jaci_env_files.txt"
@@ -205,10 +248,10 @@ echo "[INFO] Activating environment"
 spack env activate "envs/${ENV_NAME}"
 spack env status | tee "${LOG_ROOT}/07_spack_env_status.txt"
 
-spack config blame config   | tee "${LOG_ROOT}/08_spack_config_blame_config.txt"
-spack config blame packages | tee "${LOG_ROOT}/08_spack_config_blame_packages.txt"
+spack config blame config    | tee "${LOG_ROOT}/08_spack_config_blame_config.txt"
+spack config blame packages  | tee "${LOG_ROOT}/08_spack_config_blame_packages.txt"
 spack config blame compilers | tee "${LOG_ROOT}/08_spack_config_blame_compilers.txt"
-spack config blame modules  | tee "${LOG_ROOT}/08_spack_config_blame_modules.txt"
+spack config blame modules   | tee "${LOG_ROOT}/08_spack_config_blame_modules.txt"
 
 grep -R "gcc@12.3.0" "envs/${ENV_NAME}" \
   | tee "${LOG_ROOT}/09_check_gcc_external.txt"
