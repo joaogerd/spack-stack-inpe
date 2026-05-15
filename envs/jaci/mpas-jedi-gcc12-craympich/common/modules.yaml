@@ -1,0 +1,41 @@
+# JACI environment common modules include
+#
+# Purpose
+# -------
+# Store the module generation policy used by the validated JACI environment.
+#
+# Context
+# -------
+# The validated JACI stack used Tcl modulefiles rooted under the active Spack
+# environment:
+#
+#   $env/modules
+#
+# Validation status
+# -----------------
+# This file follows the Tcl module layout observed in the validated GCC 12.3
+# JACI stack. It must still be compared against the original validated
+# common/modules.yaml file.
+#
+# Open items
+# ----------
+# 1. Confirm this file exactly matches or intentionally improves the original.
+# 2. Confirm generated modules after a clean rebuild.
+# 3. Evaluate Lmod only as a separate future experiment.
+
+modules:
+  default:
+    enable:
+      - tcl
+    roots:
+      tcl: $env/modules
+    tcl:
+      projections:
+        ^mpi: '{^mpi.name}/{^mpi.version}/{compiler.name}/{compiler.version}/{name}/{version}'
+        all: '{compiler.name}/{compiler.version}/{name}/{version}'
+      hash_length: 0
+      all:
+        autoload: direct
+        environment:
+          set:
+            '{name}_ROOT': '{prefix}'
