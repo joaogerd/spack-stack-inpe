@@ -34,6 +34,15 @@
 # Do not execute it in a subshell with `bash setup.sh`, because the module and
 # environment changes must remain active in the current shell.
 #
+# Exported metadata
+# -----------------
+# The generic variables below identify the active site, compiler target and MPI
+# target without embedding the site name in the variable itself:
+#
+#   SITE_NAME
+#   TARGET_COMPILER
+#   TARGET_MPI
+#
 # Open items
 # ----------
 # The GCC 13.2 target still needs a full spack-stack and MONAN/MPAS-JEDI
@@ -58,6 +67,6 @@ export MPIFC=ftn
 export MPIF77=ftn
 export MPIF90=ftn
 
-export JACI_SITE_NAME=jaci
-export JACI_TARGET_COMPILER=gcc-native/13.2
-export JACI_TARGET_MPI=cray-mpich/8.1.31
+export SITE_NAME=jaci
+export TARGET_COMPILER=gcc-native/13.2
+export TARGET_MPI=cray-mpich/8.1.31
