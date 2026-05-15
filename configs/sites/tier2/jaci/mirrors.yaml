@@ -1,0 +1,7 @@
+# JACI mirrors for JCSDA spack-stack.
+#
+# Status:
+#   Initial skeleton. Add INPE mirrors/buildcaches after the mirror policy is
+#   defined and validated.
+
+mirrors: {}
