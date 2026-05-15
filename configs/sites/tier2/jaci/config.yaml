@@ -1,21 +1,55 @@
-# JACI site config for JCSDA spack-stack.
+# JACI config.yaml for JCSDA spack-stack
 #
-# Status:
-#   Initial skeleton. Values must be completed from the validated JACI setup
-#   before this file is treated as production-ready.
+# Purpose
+# -------
+# Define site-level Spack configuration for the JACI machine, following the
+# JCSDA spack-stack site layout:
+#
+#   configs/sites/tier2/jaci/config.yaml
+#
+# Context
+# -------
+# This file belongs to the INPE/JACI site configuration. It should be copied
+# into the JCSDA spack-stack tree under the same relative path before creating
+# and concretizing the target environment.
+#
+# Validation status
+# -----------------
+# This is an initial skeleton. It is not yet a production-ready JACI config.
+# The GCC 12.3 diagnostic baseline was validated in the discovery workflow, but
+# the target configuration for this repository is GCC 13.2 and still needs a
+# full validation run.
+#
+# How to use
+# ----------
+# Copy the full site directory into the JCSDA spack-stack tree:
+#
+#   cp -r configs/sites/tier2/jaci <spack-stack>/configs/sites/tier2/
+#
+# Then activate/create the intended spack-stack environment and inspect with:
+#
+#   spack config blame config
+#
+# Open items
+# ----------
+# 1. Confirm the final install_tree root for INPE/JACI.
+# 2. Confirm build_stage and cache paths.
+# 3. Decide if paths should be institutional, user-specific, or environment
+#    specific.
+# 4. Confirm this file is actually picked up by spack-stack release/2.1.
 
 config:
   # TODO: confirm final institutional install tree.
   # Example pattern used during validation:
   # install_tree:
-  #   root: /p/projetos/monan_das/${user}/env/spack-stack/install-release-2.1-gcc13
+  #   root: /p/projetos/monan_das/<user>/env/spack-stack/install-release-2.1-gcc13
 
   # TODO: confirm build stage and cache policy for JACI.
   # build_stage:
-  #   - /p/projetos/monan_das/${user}/work/spack-stage
+  #   - /p/projetos/monan_das/<user>/work/spack-stage
 
   # TODO: confirm source cache location.
-  # source_cache: /p/projetos/monan_das/${user}/cache/spack/source_cache
+  # source_cache: /p/projetos/monan_das/<user>/cache/spack/source_cache
 
   # Keep concretizer behavior explicit after validation.
   concretizer: clingo
