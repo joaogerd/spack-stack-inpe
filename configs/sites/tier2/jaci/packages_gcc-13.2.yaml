@@ -1,7 +1,39 @@
-# JACI package configuration specific to gcc-native/13.2.
+# JACI packages_gcc-13.2.yaml for JCSDA spack-stack
 #
-# Status:
-#   Initial skeleton. Paths must be verified on JACI before production use.
+# Purpose
+# -------
+# Define package externals and package preferences that are specific to the
+# JACI GNU 13.2 target.
+#
+# Context
+# -------
+# On JACI, Cray MPICH is provided by the HPE/Cray programming environment.
+# The exact Cray MPICH prefix depends on the GNU backend. For the intended
+# GCC 13.2 target, the expected prefix is:
+#
+#   /opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
+#
+# The build logic must still use the CrayPE compiler drivers `cc`, `CC` and
+# `ftn`, not raw `mpicc`, `mpicxx` or `mpifort` wrappers.
+#
+# Validation status
+# -----------------
+# This file is an initial GCC 13.2 skeleton. The CrayPE/Cray MPICH strategy was
+# validated during the GCC 12.3 diagnostic baseline, but the GCC 13.2 target has
+# not yet completed a full spack-stack + MONAN/MPAS-JEDI validation.
+#
+# How to use
+# ----------
+# Use this file together with the common `packages.yaml` in the same site
+# directory. Keep here only entries that are specific to gcc-native/13.2.
+#
+# Open items
+# ----------
+# 1. Verify that `/opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2` exists on JACI.
+# 2. Verify the correct Cray LibSci path for GNU 13.2 before enabling it.
+# 3. Confirm whether Cray LibSci should provide BLAS/LAPACK or whether those
+#    should remain built by Spack.
+# 4. Confirm the exact GCC version string expected by Spack, e.g. gcc@13.2.0.
 
 packages:
   cray-mpich:
