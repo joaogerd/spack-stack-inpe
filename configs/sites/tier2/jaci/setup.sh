@@ -46,9 +46,10 @@
 # Do not execute it in a subshell with `bash setup.sh`, because the module and
 # environment changes must remain active in the current shell.
 #
-# This file intentionally starts with `module purge` to avoid conflicts with
-# the default gcc-native/13.2 module when switching to the validated GCC 12.3
-# target.
+# This file intentionally resets the module state and explicitly unloads
+# gcc-native/13.2 before loading gcc-native/12.3. The explicit unload is kept
+# even after `module purge` because gcc-native/13.2 is the default GNU backend
+# on JACI and may be restored by local module initialization behavior.
 #
 # Exported metadata
 # -----------------
@@ -62,6 +63,7 @@
 module purge
 
 module load PrgEnv-gnu/8.6.0
+module unload gcc-native/13.2 2>/dev/null || true
 module load gcc-native/12.3
 module load craype-x86-turin
 module load cray-mpich/8.1.31
