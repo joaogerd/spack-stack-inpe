@@ -30,6 +30,8 @@
 #   TEST_ID=spack-stack-inpe-test-release-2.1-gcc12
 #   INSTALL_JOBS=16
 #   FORCE_SOURCE_BUILD=0
+#   SPACK_INSTALL_VERBOSE=1
+#   SPACK_INSTALL_FAIL_FAST=1
 #
 # Notes
 # -----
@@ -44,6 +46,9 @@
 #   tail -f ${LOG_ROOT}/12_spack_install.log
 #   ps -fu $USER | grep -E 'spack|make|ninja|cmake|gcc|g\+\+|gfortran|cc|ftn'
 #
+# If old Spack processes with PPID 1 remain from previous days, they may hold
+# locks or confuse diagnosis. Inspect them before killing anything.
+#
 # =============================================================================
 
 set -euo pipefail
@@ -55,6 +60,8 @@ export LOG_ROOT="${PROJECT_ROOT}/logs/${TEST_ID}"
 export ENV_NAME="${ENV_NAME:-jaci-mpas-jedi-gcc12-craympich}"
 export INSTALL_JOBS="${INSTALL_JOBS:-16}"
 export FORCE_SOURCE_BUILD="${FORCE_SOURCE_BUILD:-0}"
+export SPACK_INSTALL_VERBOSE="${SPACK_INSTALL_VERBOSE:-1}"
+export SPACK_INSTALL_FAIL_FAST="${SPACK_INSTALL_FAIL_FAST:-1}"
 
 mkdir -p "${LOG_ROOT}"
 
@@ -64,10 +71,18 @@ source configs/sites/tier2/jaci/setup.sh
 source setup.sh
 spack env activate "envs/${ENV_NAME}"
 
+INSTALL_ARGS=(-j "${INSTALL_JOBS}")
+
 if [ "${FORCE_SOURCE_BUILD}" = "1" ]; then
-  INSTALL_ARGS=(--no-cache -j "${INSTALL_JOBS}")
-else
-  INSTALL_ARGS=(-j "${INSTALL_JOBS}")
+  INSTALL_ARGS=(--no-cache "${INSTALL_ARGS[@]}")
+fi
+
+if [ "${SPACK_INSTALL_VERBOSE}" = "1" ]; then
+  INSTALL_ARGS=(-v "${INSTALL_ARGS[@]}")
+fi
+
+if [ "${SPACK_INSTALL_FAIL_FAST}" = "1" ]; then
+  INSTALL_ARGS=(--fail-fast "${INSTALL_ARGS[@]}")
 fi
 
 {
@@ -78,6 +93,8 @@ fi
   echo "[INFO] ENV_NAME=${ENV_NAME}"
   echo "[INFO] INSTALL_JOBS=${INSTALL_JOBS}"
   echo "[INFO] FORCE_SOURCE_BUILD=${FORCE_SOURCE_BUILD}"
+  echo "[INFO] SPACK_INSTALL_VERBOSE=${SPACK_INSTALL_VERBOSE}"
+  echo "[INFO] SPACK_INSTALL_FAIL_FAST=${SPACK_INSTALL_FAIL_FAST}"
   echo "[INFO] Command: spack install ${INSTALL_ARGS[*]}"
   echo "[INFO] Live log: ${LOG_ROOT}/12_spack_install.log"
   echo "[INFO] If output appears quiet, check another shell with:"
