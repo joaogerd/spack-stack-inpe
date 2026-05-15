@@ -18,6 +18,15 @@
 #
 #   09_spack_concretize.log
 #
+# Notes
+# -----
+# Some Spack configuration keys contain the substring "error" but are not
+# failures. For example:
+#
+#   keep_werror: none
+#
+# This script filters that known false positive from the final grep summary.
+#
 # Usage
 # -----
 #   bash scripts/manual/06_collect.sh
@@ -68,4 +77,5 @@ cat "${LOG_ROOT}/22_cmake_findmpi_summary.txt" 2>/dev/null || true
 echo
 echo "[INFO] Errors found:"
 grep -RniE "error|failed|cannot|conflict|No such file|undefined reference|CMake Error|spack error" "${LOG_ROOT}" \
+  | grep -vi "keep_werror" \
   | head -n 200 || true
