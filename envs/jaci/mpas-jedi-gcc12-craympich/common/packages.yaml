@@ -1,0 +1,36 @@
+# JACI environment common packages include
+#
+# Purpose
+# -------
+# Store package rules that are common to the validated JACI environment.
+#
+# Context
+# -------
+# This file belongs to the `common/` include layer referenced by the validated
+# environment spack.yaml.
+#
+# Validation status
+# -----------------
+# This file is reconstructed from the configuration audit and from the validated
+# GCC 12.3 + Cray MPICH target. It must still be compared against the original
+# validated common/packages.yaml file.
+#
+# Open items
+# ----------
+# 1. Confirm the full package rule set from the original validated environment.
+# 2. Confirm whether OpenBLAS remains the intended BLAS/LAPACK provider.
+# 3. Do not enable Cray LibSci here unless it is validated separately.
+
+packages:
+  all:
+    require: []
+    providers:
+      mpi: [cray-mpich]
+      blas: [openblas]
+      lapack: [openblas]
+
+  openmpi:
+    buildable: false
+
+  mpich:
+    buildable: false
