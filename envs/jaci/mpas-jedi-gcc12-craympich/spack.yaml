@@ -2,28 +2,36 @@
 #
 # Purpose
 # -------
-# Define the target spack-stack environment for MONAN/MPAS-JEDI on JACI using
-# the currently validated GCC 12.3 + Cray MPICH stack.
+# Define the spack-stack environment for MONAN/MPAS-JEDI on JACI using the
+# currently validated GCC 12.3 + Cray MPICH target.
 #
 # Context
 # -------
-# This environment is meant to be copied into the JCSDA `spack-stack` tree and
-# concretized there, after the JACI site configuration has been installed under:
+# This file is derived from the validated environment:
 #
-#   configs/sites/tier2/jaci/
+#   envs/mpas-bundle-jaci-gnu12/spack.yaml
 #
-# Validation status
-# -----------------
-# This is a skeleton derived from the validated target concept. The exact
-# package list must still be replaced by the full environment definition from
-# the validated JACI stack.
+# in the discovery JACI spack-stack tree.
 #
-# The underlying compiler/MPI target has been validated with a reduced
-# MPAS-JEDI-only workflow:
+# The validated target used:
 #
+#   spack-stack release/2.1
 #   PrgEnv-gnu/8.6.0
 #   gcc-native/12.3
 #   cray-mpich/8.1.31
+#   CrayPE compiler drivers cc, CC and ftn
+#
+# Validation status
+# -----------------
+# This environment structure was observed in the validated stack. The associated
+# MPAS-JEDI validation result was 61/62 tests passing, with one stable numerical
+# reference mismatch in `mpasjedi_lgetkf_height_vloc`.
+#
+# The hashes below document the discovery tree from which this environment was
+# extracted:
+#
+#   spack-stack hash: 4641080
+#   spack hash: 324bf79a31
 #
 # How to use
 # ----------
@@ -37,19 +45,35 @@
 #
 # Open items
 # ----------
-# 1. Replace the placeholder specs below with the exact spack-stack environment
-#    used by the validated GCC 12.3 stack.
-# 2. Confirm whether the target environment should be named `jedi-mpas-env`,
-#    `mpas-jedi-env` or another institutional name.
-# 3. Confirm all variants required by MONAN/MPAS-JEDI.
+# 1. Confirm whether the environment name should remain
+#    `jaci-mpas-jedi-gcc12-craympich` or be aligned with the original
+#    `mpas-bundle-jaci-gnu12` naming convention.
+# 2. Confirm that the `site` and `common` include directories are generated or
+#    copied in the expected location when this file is used outside the original
+#    discovery tree.
 
+# spack-stack hash: 4641080
+# spack hash: 324bf79a31
 spack:
   concretizer:
-    unify: true
-
+    unify: when_possible
   view: false
-
+  include:
+  - site
+  - common
   specs:
-    # TODO: replace with the final spack-stack environment specification.
-    # The placeholder below records the validated compiler/MPI target only.
-    - jedi-mpas-env%gcc@12.3.0 ^cray-mpich@8.1.31+wrappers
+  - jedi-mpas-env
+  bootstrap:
+    enable: true
+    root: $spack/bootstrap
+    sources:
+    - name: github-actions-v2
+      metadata: $spack/share/spack/bootstrap/github-actions-v2
+    - name: github-actions-v0.6
+      metadata: $spack/share/spack/bootstrap/github-actions-v0.6
+    - name: spack-install
+      metadata: $spack/share/spack/bootstrap/spack-install
+    trusted:
+      github-actions-v2: true
+      github-actions-v0.6: true
+      spack-install: true
