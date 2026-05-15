@@ -1,50 +1,76 @@
-
-
-<!-- REPO_AUDIT_BEGIN -->
-
-# Auditoria de Repositórios Locais
-
-**Data de geração:** 2026-05-02 09:48:50
-
-**Caminho auditado:** `/media/extra/wrk/dev`
-
-## Objetivo
-
-Este diretório foi auditado para identificar possíveis repositórios Git e SVN, verificar seu estado local/remoto e apontar diretórios que podem ser candidatos à limpeza da máquina local.
-
-## Resumo da auditoria
-
-- Total de registros analisados: **110**
-- Repositórios encontrados: **110**
-- Repositórios Git: **96**
-- Repositórios SVN: **14**
-- Candidatos à limpeza: **34**
-- Critério de sem uso: **12 meses**
-
-## Arquivos gerados
-
-- `repo_audit_report.md`: relatório completo em Markdown.
-- `repo_audit_report.csv`: relatório tabular para abertura em planilhas.
-- `README.md`: este arquivo, com resumo da auditoria.
-
-## Como interpretar
-
-Os repositórios classificados como **atualizado e limpo** não possuem alterações locais detectadas, não possuem arquivos novos não rastreados, não possuem commits pendentes de push e não parecem estar atrás do remoto.
-
-Os repositórios classificados como **repositório antigo e aparentemente sem uso** são candidatos à limpeza apenas porque estavam limpos e sem atividade recente conforme o critério configurado.
-
-## Recomendações de limpeza
-
-Antes de apagar qualquer diretório manualmente:
-
-- confira o relatório Markdown completo;
-- abra o diretório e execute `git status` ou `svn status`;
-- confirme se existe remoto configurado;
-- confirme se não há arquivos importantes fora do controle de versão;
-- confirme se o diretório não é usado por scripts, ambientes ou workflows externos;
-- faça backup se houver qualquer dúvida.
-
-> Atenção: não apague diretórios apenas com base no relatório. Faça sempre uma conferência manual.
-
-<!-- REPO_AUDIT_END -->
 # spack-stack-inpe
+
+INPE site configuration and operational notes for using the JCSDA `spack-stack` on INPE HPC systems.
+
+The initial focus is the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH.
+
+## Scope
+
+This repository is intended to store:
+
+```text
+- JACI site configuration files following the JCSDA spack-stack layout;
+- ready-to-copy YAML files for the site configuration;
+- a site `setup.sh` for loading the required CrayPE environment;
+- manual build and validation instructions;
+- stack-level validation notes.
+```
+
+This repository is not intended to store the MONAN/MPAS-JEDI source tree or the MPAS-JEDI build workflow. That belongs in the `MONAN-bundle` repository.
+
+## Expected JCSDA-compatible layout
+
+```text
+configs/sites/tier2/jaci/
+├── config.yaml
+├── mirrors.yaml
+├── modules.yaml
+├── packages.yaml
+├── packages_gcc-13.2.yaml
+├── setup.sh
+└── README.md
+```
+
+## Current status
+
+The current repository contains the initial manual and skeleton site structure.
+
+Confirmed baseline from previous validation:
+
+```text
+spack-stack release/2.1
+PrgEnv-gnu/8.6.0
+gcc-native/12.3
+cray-mpich/8.1.31
+CrayPE drivers cc, CC, ftn
+```
+
+Institutional target to validate next:
+
+```text
+spack-stack release/2.1
+PrgEnv-gnu/8.6.0
+gcc-native/13.2
+cray-mpich/8.1.31
+CrayPE drivers cc, CC, ftn
+```
+
+## Main documentation
+
+Start with:
+
+```text
+docs/JACI_STACK_BUILD_STEPS.md
+```
+
+This document describes the manual procedure from loading the JACI base environment through creating, concretizing, installing and validating the `spack-stack` environment.
+
+## Boundary with MONAN-bundle
+
+This repository stops at the validated `spack-stack` environment.
+
+The MONAN/MPAS-JEDI build and test workflow should consume this stack from:
+
+```text
+https://github.com/GAD-DIMNT-CPTEC/MONAN-bundle
+```
