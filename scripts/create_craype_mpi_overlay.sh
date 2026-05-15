@@ -170,12 +170,12 @@ EOF
   chmod +x "${path}"
 }
 
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicc"   "${CRAYPE_CC}"  "gcc"
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicxx"  "${CRAYPE_CXX}" "g++"
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpic++"  "${CRAYPE_CXX}" "g++"
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpifort" "${CRAYPE_FC}"  "gfortran"
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpif90"  "${CRAYPE_FC}"  "gfortran"
-write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpif77"  "${CRAYPE_FC}"  "gfortran"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicc"   "${CRAYPE_CC}"  "${CRAYPE_CC}"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpicxx"  "${CRAYPE_CXX}" "${CRAYPE_CXX}"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpic++"  "${CRAYPE_CXX}" "${CRAYPE_CXX}"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpifort" "${CRAYPE_FC}"  "${CRAYPE_FC}"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpif90"  "${CRAYPE_FC}"  "${CRAYPE_FC}"
+write_wrapper "${CRAY_MPICH_OVERLAY_PREFIX}/bin/mpif77"  "${CRAYPE_FC}"  "${CRAYPE_FC}"
 
 if [[ -d "${REAL_CRAY_MPICH_PREFIX}" ]]; then
   for entry in include lib lib64 share etc man; do
