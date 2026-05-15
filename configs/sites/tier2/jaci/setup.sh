@@ -1,4 +1,44 @@
-# JACI setup for spack-stack
+# JACI setup for JCSDA spack-stack
+#
+# Purpose
+# -------
+# Load the base HPE/Cray programming environment required to build and use
+# the JACI spack-stack site configuration.
+#
+# Context
+# -------
+# JACI uses CrayPE. In this environment, the correct compiler drivers for
+# builds are:
+#
+#   cc   for C
+#   CC   for C++
+#   ftn  for Fortran
+#
+# Do not force packages or CMake to use the raw Cray MPICH wrappers directly,
+# such as mpicc, mpicxx or mpifort. When CrayPE is loaded, those wrappers can
+# produce errors indicating that cc, CC and ftn must be used instead.
+#
+# Validation status
+# -----------------
+# The CrayPE + Cray MPICH logic was validated during the GCC 12.3 diagnostic
+# baseline. The target documented here is gcc-native/13.2, which is the newer
+# GNU environment currently intended for institutional validation on JACI.
+#
+# How to use
+# ----------
+# Source this file from inside a shell before creating, concretizing,
+# installing or loading the JACI spack-stack environment:
+#
+#   source configs/sites/tier2/jaci/setup.sh
+#
+# Do not execute it in a subshell with `bash setup.sh`, because the module and
+# environment changes must remain active in the current shell.
+#
+# Open items
+# ----------
+# The GCC 13.2 target still needs a full spack-stack and MONAN/MPAS-JEDI
+# validation run. If a fallback is needed, the previously validated diagnostic
+# baseline used gcc-native/12.3.
 
 module load PrgEnv-gnu/8.6.0
 module load craype-x86-turin
