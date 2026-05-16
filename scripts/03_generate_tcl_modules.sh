@@ -1,39 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 03_generate_modules_tcl.sh
+# 03_generate_tcl_modules.sh
 # =============================================================================
-#
-# Purpose
-# -------
-# Generate Tcl modulefiles for the installed JACI spack-stack-inpe environment.
-#
-# Prerequisite
-# ------------
-# Run first:
-#
-#   bash scripts/manual/01_create.sh
-#   bash scripts/manual/02_install.sh
-#
-# Usage
-# -----
-#   bash scripts/manual/03_generate_modules_tcl.sh
-#
+# Generate Tcl modulefiles for the installed spack-stack-inpe environment.
 # =============================================================================
 
 set -euo pipefail
 
-export PROJECT_ROOT="${PROJECT_ROOT:-/p/projetos/monan_das/${USER}}"
-export TEST_ID="${TEST_ID:-spack-stack-inpe-test-release-2.1-gcc12}"
-export WORK_ROOT="${PROJECT_ROOT}/work/${TEST_ID}"
-export LOG_ROOT="${PROJECT_ROOT}/logs/${TEST_ID}"
-export ENV_NAME="${ENV_NAME:-jaci-mpas-jedi-gcc12-craympich}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
 
-cd "${WORK_ROOT}/spack-stack"
+load_site_config
+initialize_run_layout
 
-source configs/sites/tier2/jaci/setup.sh
-source setup.sh
-
-spack env activate "envs/${ENV_NAME}"
+activate_stack_environment
 
 spack module tcl refresh -y 2>&1 | tee "${LOG_ROOT}/13_spack_module_tcl_refresh.log"
 
