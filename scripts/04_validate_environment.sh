@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
-# Validate the generated Tcl module tree for the JACI environment.
+# =============================================================================
+# 04_validate_environment.sh
+# =============================================================================
+# Validate the generated Tcl module tree for a spack-stack-inpe site environment.
+# =============================================================================
+
 set -euo pipefail
 
-export PROJECT_ROOT="${PROJECT_ROOT:-/p/projetos/monan_das/${USER}}"
-export TEST_ID="${TEST_ID:-spack-stack-inpe-test-release-2.1-gcc12}"
-export WORK_ROOT="${PROJECT_ROOT}/work/${TEST_ID}"
-export LOG_ROOT="${PROJECT_ROOT}/logs/${TEST_ID}"
-export ENV_NAME="${ENV_NAME:-jaci-mpas-jedi-gcc12-craympich}"
-export JEDI_ENV_MODULE="${JEDI_ENV_MODULE:-cray-mpich/8.1.31/none/none/jedi-mpas-env/1.0.0}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+
+load_site_config
+initialize_run_layout
+
+export JEDI_ENV_MODULE="${JEDI_ENV_MODULE:-${JACI_ENV_MODULE:-cray-mpich/8.1.31/none/none/jedi-mpas-env/1.0.0}}"
 
 cd "${WORK_ROOT}/spack-stack"
-source configs/sites/tier2/jaci/setup.sh
+source_spack_stack_site_setup
 module use "${WORK_ROOT}/spack-stack/envs/${ENV_NAME}/modules"
 
 module avail 2>&1 | tee "${LOG_ROOT}/16_module_avail_generated.txt"
