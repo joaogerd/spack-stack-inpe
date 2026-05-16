@@ -1,47 +1,21 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 06_collect.sh
+# 06_collect_logs.sh
 # =============================================================================
-#
-# Purpose
-# -------
-# Collect and summarize logs from the manual JACI spack-stack-inpe validation
-# workflow.
-#
-# Important correction
-# --------------------
-# The current manual flow writes the concretization log to:
-#
-#   10_spack_concretize.log
-#
-# not:
-#
-#   09_spack_concretize.log
-#
-# Notes
-# -----
-# Some Spack configuration keys contain the substring "error" but are not
-# failures. For example:
-#
-#   keep_werror: none
-#
-# This script filters that known false positive from the final grep summary.
-#
-# Usage
-# -----
-#   bash scripts/manual/06_collect.sh
-#
+# Collect and summarize logs from the selected spack-stack-inpe validation flow.
 # =============================================================================
 
 set -euo pipefail
 
-export PROJECT_ROOT="${PROJECT_ROOT:-/p/projetos/monan_das/${USER}}"
-export TEST_ID="${TEST_ID:-spack-stack-inpe-test-release-2.1-gcc12}"
-export LOG_ROOT="${PROJECT_ROOT}/logs/${TEST_ID}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+
+load_site_config
 
 echo "[INFO] LOG_ROOT=${LOG_ROOT}"
 
-if [ ! -d "${LOG_ROOT}" ]; then
+if [[ ! -d "${LOG_ROOT}" ]]; then
   echo "[ERROR] LOG_ROOT does not exist: ${LOG_ROOT}" >&2
   exit 1
 fi
@@ -54,21 +28,21 @@ tail -n 120 "${LOG_ROOT}/10_spack_concretize.log" 2>/dev/null || true
 
 echo
 echo "[INFO] Last lines from install log:"
-tail -n 120 "${LOG_ROOT}/11_spack_install.log" 2>/dev/null || true
+tail -n 120 "${LOG_ROOT}/12_spack_install.log" 2>/dev/null || true
 
 echo
 echo "[INFO] Last lines from module validation log:"
-tail -n 80 "${LOG_ROOT}/16_module_list_stack_loaded.txt" 2>/dev/null || true
+tail -n 80 "${LOG_ROOT}/17_module_list_stack_loaded.txt" 2>/dev/null || true
 
 echo
 echo "[INFO] Tool resolution:"
-cat "${LOG_ROOT}/17_which_tools.txt" 2>/dev/null || true
+cat "${LOG_ROOT}/18_which_tools.txt" 2>/dev/null || true
 
 echo
 echo "[INFO] Python validation:"
-cat "${LOG_ROOT}/18_python_version.txt" 2>/dev/null || true
-cat "${LOG_ROOT}/19_python_mpi4py_check.txt" 2>/dev/null || true
-cat "${LOG_ROOT}/20_python_netcdf4_check.txt" 2>/dev/null || true
+cat "${LOG_ROOT}/19_python_version.txt" 2>/dev/null || true
+cat "${LOG_ROOT}/20_python_mpi4py_check.txt" 2>/dev/null || true
+cat "${LOG_ROOT}/21_python_netcdf4_check.txt" 2>/dev/null || true
 
 echo
 echo "[INFO] CMake FindMPI summary:"
