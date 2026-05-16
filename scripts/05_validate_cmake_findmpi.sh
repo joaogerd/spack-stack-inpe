@@ -1,41 +1,21 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 05_testing_cmake.sh
+# 05_validate_cmake_findmpi.sh
 # =============================================================================
-#
-# Purpose
-# -------
-# Run a minimal CMake FindMPI probe using the validated JACI CrayPE environment.
-#
-# Expected behavior
-# -----------------
-# FindMPI should resolve to CrayPE drivers:
-#
-#   cc
-#   CC
-#   ftn
-#
-# Prerequisite
-# ------------
-# Run first:
-#
-#   bash scripts/manual/01_create.sh
-#
-# Usage
-# -----
-#   bash scripts/manual/05_testing_cmake.sh
-#
+# Run a minimal CMake FindMPI probe using the selected site environment.
 # =============================================================================
 
 set -euo pipefail
 
-export PROJECT_ROOT="${PROJECT_ROOT:-/p/projetos/monan_das/${USER}}"
-export TEST_ID="${TEST_ID:-spack-stack-inpe-test-release-2.1-gcc12}"
-export WORK_ROOT="${PROJECT_ROOT}/work/${TEST_ID}"
-export LOG_ROOT="${PROJECT_ROOT}/logs/${TEST_ID}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
 
-source "${WORK_ROOT}/spack-stack/configs/sites/tier2/jaci/setup.sh"
-source "${WORK_ROOT}/spack-stack/setup.sh"
+load_site_config
+initialize_run_layout
+
+source_spack_stack_site_setup
+source_spack_stack_setup
 
 mkdir -p "${WORK_ROOT}/probes/cmake-findmpi"
 cd "${WORK_ROOT}/probes/cmake-findmpi"
