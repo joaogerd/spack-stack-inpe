@@ -1,24 +1,47 @@
 # spack-stack-inpe
 
-INPE site configuration and operational notes for using the JCSDA `spack-stack` on INPE HPC systems.
+INPE site configuration and operational documentation for using the JCSDA `spack-stack` on INPE HPC systems.
 
-The initial focus is the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH.
+The initial validated target is the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH.
 
-## Scope
+## Purpose
 
-This repository is intended to store:
+This repository stores the INPE/JACI site configuration and the operational procedure required to build and validate a local `spack-stack` environment suitable for future MONAN/MPAS-JEDI work.
+
+It is intended to contain:
 
 ```text
 - JACI site configuration files following the JCSDA spack-stack layout;
-- ready-to-copy YAML files for the site configuration;
-- a site `setup.sh` for loading the required CrayPE environment;
-- manual build and validation instructions;
+- ready-to-use YAML files for the site configuration;
+- a site setup.sh for loading the required CrayPE environment;
+- scripts for manual installation and validation;
+- Portuguese and English operational documentation;
 - stack-level validation notes.
 ```
 
-This repository is not intended to store the MONAN/MPAS-JEDI source tree or the MPAS-JEDI build workflow. That belongs in the `MONAN-bundle` repository.
+This repository is not intended to store the MONAN, MPAS-JEDI or `jedi-bundle` source tree. The MONAN/MPAS-JEDI build workflow should consume the validated stack from a separate repository, such as `MONAN-bundle`.
 
-## Expected JCSDA-compatible layout
+## Documentation
+
+Portuguese documentation:
+
+```text
+docs/pt_BR/README.md
+docs/pt_BR/JACI_STACK_BUILD_STEPS.md
+```
+
+English documentation:
+
+```text
+docs/en/README.md
+docs/en/JACI_STACK_BUILD_STEPS.md
+```
+
+The main operational manual is available in both languages and describes the procedure from preparing the JACI `spack-stack` tree to validating the generated Tcl module environment and CMake/FindMPI behavior.
+
+## JCSDA-compatible site layout
+
+The JACI site files follow the JCSDA `spack-stack` convention:
 
 ```text
 configs/sites/tier2/jaci/
@@ -30,6 +53,17 @@ configs/sites/tier2/jaci/
 ├── packages_gcc-13.2.yaml
 ├── setup.sh
 └── README.md
+```
+
+## Environment layout
+
+The validated JACI environment is stored under:
+
+```text
+envs/jaci/mpas-jedi-gcc12-craympich/
+├── spack.yaml
+├── common/
+└── site/
 ```
 
 ## Current validated target
@@ -45,51 +79,84 @@ CrayPE drivers cc, CC, ftn
 Tcl modulefiles under $env/modules
 ```
 
-This target was validated during the JACI discovery workflow and supported a reduced MPAS-JEDI-only build and PBS/PALS test execution.
-
-The MPAS-JEDI validation status associated with this stack was:
+The GCC 13.2 target is kept as experimental because, with the current JACI CrayPE configuration, `cray-mpich/8.1.31` exports the GNU 12.3 backend path:
 
 ```text
-61/62 MPAS-JEDI tests passed
-1 stable numerical reference mismatch: mpasjedi_lgetkf_height_vloc
+/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
 ```
 
-The remaining failure was reproducible and classified as a platform-specific numerical reference mismatch, not an infrastructure failure.
+and not a GNU 13.2 backend path.
 
-## Experimental GCC 13.2 target
+## Cray MPICH overlay
 
-The `gcc-native/13.2` module exists on JACI, but it is not the current production target for this repository.
+The repository uses a global overlay for the external `cray-mpich` package.
 
-With `PrgEnv-gnu/8.6.0`, `gcc-native/13.2` and `cray-mpich/8.1.31` loaded, CrayPE still exports:
+This is required because some Spack recipes call attributes such as:
+
+```python
+self.spec["mpi"].mpicc
+```
+
+On CrayPE systems, directly using the raw Cray MPICH wrappers under `/opt/cray/pe/mpich/.../bin/mpicc` can fail. The overlay provides wrapper names expected by Spack, such as `mpicc`, `mpicxx` and `mpifort`, while internally delegating to the CrayPE compiler drivers:
 
 ```text
-CRAY_MPICH_DIR=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
-CRAY_MPICH_PREFIX=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3
+cc
+CC
+ftn
 ```
 
-The following path does not exist on JACI:
+This avoids package-by-package patches for MPI consumers such as HDF5, FFTW, NetCDF, Parallel-NetCDF, ParallelIO, eckit and mpi4py.
+
+## Manual workflow
+
+The official workflow is split into six scripts:
 
 ```text
-/opt/cray/pe/mpich/8.1.31/ofi/gnu/13.2
+scripts/01_prepare_jaci_stack.sh
+scripts/02_install_packages.sh
+scripts/03_generate_tcl_modules.sh
+scripts/04_validate_environment.sh
+scripts/05_validate_cmake_findmpi.sh
+scripts/06_collect_logs.sh
 ```
 
-Therefore, GCC 13.2 is kept only as an experimental/hybrid target until a compatible Cray MPICH backend is available or a full explicit validation is performed.
+Recommended validation sequence:
 
-## Main documentation
+```bash
+cd /p/projetos/monan_das/${USER}/projects/spack-stack-inpe
 
-Start with:
+git pull
+
+export TEST_ID="spack-stack-inpe-validation-$(date -u +%Y%m%dT%H%M%SZ)"
+export FRESH_INSTALL=1
+export FORCE_SOURCE_BUILD=1
+export INSTALL_JOBS=1
+export SPACK_INSTALL_VERBOSE=1
+export SPACK_INSTALL_FAIL_FAST=1
+
+bash scripts/01_prepare_jaci_stack.sh
+bash scripts/02_install_packages.sh
+bash scripts/03_generate_tcl_modules.sh
+bash scripts/04_validate_environment.sh
+bash scripts/05_validate_cmake_findmpi.sh
+bash scripts/06_collect_logs.sh
+```
+
+## Tagging policy
+
+A validation tag should only be created after another member of the group successfully executes the complete procedure with a new `TEST_ID`, a fresh install tree and reviewed logs.
+
+Suggested tag format:
 
 ```text
-docs/JACI_STACK_BUILD_STEPS.md
+jaci-spack-stack-2.1-gcc12-craympich-YYYYMMDD
 ```
-
-This document describes the manual procedure from loading the JACI base environment through creating, concretizing, installing and validating the `spack-stack` environment.
 
 ## Boundary with MONAN-bundle
 
 This repository stops at the validated `spack-stack` environment.
 
-The MONAN/MPAS-JEDI build and test workflow should consume this stack from:
+The MONAN/MPAS-JEDI build and test workflow should consume this stack from a separate repository, for example:
 
 ```text
 https://github.com/GAD-DIMNT-CPTEC/MONAN-bundle
