@@ -3,13 +3,12 @@
 # 01_prepare_jaci_stack.sh
 # =============================================================================
 # Prepare a clean spack-stack tree using the selected INPE site configuration,
-# activate the target environment and run concretization.
+# create a JCSDA-defined environment and run concretization.
 #
-# Compatibility note
+# Important boundary
 # ------------------
-# The script name is kept for the current JACI workflow. Internally, the script
-# now reads site-specific values from configs/sites/tier2/<site>/site.env and
-# keeps generic preparation logic separated from JACI-specific CrayPE details.
+# INPE provides the site configuration. JCSDA spack-stack provides the
+# environment template that defines the scientific software stack.
 #
 # Default site:
 #   SITE=jaci
@@ -18,7 +17,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 load_site_config
@@ -41,17 +39,11 @@ printf '[INFO] CRAY_MPICH_OVERLAY_PREFIX=%s\n' "${CRAY_MPICH_OVERLAY_PREFIX:-UNS
 # Load site base environment
 # -----------------------------------------------------------------------------
 
-if [[ -z "${SITE_BASE_ENV_SCRIPT:-}" ]]; then
-  echo "[ERROR] SITE_BASE_ENV_SCRIPT is not defined by ${SITE_CONFIG_FILE}" >&2
-  exit 1
-fi
-
 site_base_env_path="${SPACK_STACK_INPE_ROOT}/${SITE_BASE_ENV_SCRIPT}"
 if [[ ! -f "${site_base_env_path}" ]]; then
   echo "[ERROR] Site base environment script not found: ${site_base_env_path}" >&2
   exit 1
 fi
-# shellcheck source=/dev/null
 source "${site_base_env_path}"
 
 module list 2>&1 | tee "${LOG_ROOT}/00_module_list_base.txt"
@@ -99,9 +91,7 @@ git pull --ff-only || true
 git rev-parse HEAD | tee "${LOG_ROOT}/02_spack_stack_inpe_commit.txt"
 git status --short | tee "${LOG_ROOT}/02_spack_stack_inpe_status.txt"
 
-# Reload site config from the cloned repository when the workflow is running from
-# an installed checkout. This keeps script overrides reproducible for TEST_ID runs.
-# shellcheck source=/dev/null
+# Reload site config from the cloned repository.
 source "${WORK_ROOT}/spack-stack-inpe/${SITE_CONFIG_FILE#${SPACK_STACK_INPE_ROOT}/}"
 
 # -----------------------------------------------------------------------------
@@ -123,7 +113,7 @@ if [[ "${SITE_USES_CRAY_MPICH_OVERLAY:-0}" = "1" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Copy INPE site and environment into JCSDA spack-stack
+# Copy INPE site configuration into the JCSDA spack-stack tree
 # -----------------------------------------------------------------------------
 
 cd "${WORK_ROOT}/spack-stack"
@@ -133,36 +123,13 @@ cp -a "${WORK_ROOT}/spack-stack-inpe/${SITE_STACK_PATH}" "${SITE_STACK_PATH}"
 find "${SITE_STACK_PATH}" -maxdepth 1 -type f | sort \
   | tee "${LOG_ROOT}/03_installed_site_files.txt"
 
-rm -rf "envs/${ENV_NAME}"
-mkdir -p "envs/${ENV_NAME}"
-cp -a "${WORK_ROOT}/spack-stack-inpe/${SOURCE_ENV_PATH}/." \
-      "envs/${ENV_NAME}/"
-
-# Patch the copied environment to use this run's install tree.
-sed -i "s|root: .*env/spack-stack.*|root: ${INSTALL_ROOT}|" \
-  "envs/${ENV_NAME}/site/config.yaml"
-
-# Patch the copied environment to use the Cray MPICH overlay prefix when enabled.
+# Patch the copied site configuration to use the Cray MPICH overlay prefix when enabled.
 if [[ "${SITE_USES_CRAY_MPICH_OVERLAY:-0}" = "1" ]]; then
-  sed -i "s|prefix: ${JACI_REAL_CRAY_MPICH_PREFIX}|prefix: ${CRAY_MPICH_OVERLAY_PREFIX}|" \
-    "envs/${ENV_NAME}/site/packages.yaml"
-
   sed -i "s|prefix: ${JACI_REAL_CRAY_MPICH_PREFIX}|prefix: ${CRAY_MPICH_OVERLAY_PREFIX}|" \
     "${SITE_STACK_PATH}/packages_gcc-12.3.yaml" \
     "${SITE_STACK_PATH}/packages.yaml" \
     2>/dev/null || true
 fi
-
-echo "[INFO] Effective install tree root:"
-grep -n "root:" "envs/${ENV_NAME}/site/config.yaml" \
-  | tee "${LOG_ROOT}/04_effective_install_root.txt"
-
-echo "[INFO] Effective cray-mpich prefix:"
-grep -nA16 "cray-mpich:" "envs/${ENV_NAME}/site/packages.yaml" \
-  | tee "${LOG_ROOT}/04_effective_cray_mpich_external.txt" || true
-
-find "envs/${ENV_NAME}" -maxdepth 3 -type f | sort \
-  | tee "${LOG_ROOT}/04_installed_env_files.txt"
 
 # -----------------------------------------------------------------------------
 # Initialize Spack submodule and source setup
@@ -182,6 +149,45 @@ which spack | tee "${LOG_ROOT}/06_which_spack.txt"
 spack --version | tee "${LOG_ROOT}/06_spack_version.txt"
 
 # -----------------------------------------------------------------------------
+# Create environment using JCSDA spack-stack tooling
+# -----------------------------------------------------------------------------
+
+if [[ -z "${JCSDA_COMPILER}" ]]; then
+  echo "[ERROR] JCSDA_COMPILER is not defined in ${SITE_CONFIG_FILE}" >&2
+  exit 1
+fi
+
+rm -rf "envs/${ENV_NAME}"
+
+echo "[INFO] Creating JCSDA spack-stack environment"
+echo "[INFO] Command: spack stack create env --site ${JCSDA_SITE_NAME} --template ${JCSDA_ENV_TEMPLATE} --compiler ${JCSDA_COMPILER} --name ${ENV_NAME} --prefix ${INSTALL_ROOT}"
+
+spack stack create env \
+  --site "${JCSDA_SITE_NAME}" \
+  --template "${JCSDA_ENV_TEMPLATE}" \
+  --compiler "${JCSDA_COMPILER}" \
+  --name "${ENV_NAME}" \
+  --prefix "${INSTALL_ROOT}" \
+  2>&1 | tee "${LOG_ROOT}/04_spack_stack_create_env.log"
+
+if [[ "${SITE_USES_CRAY_MPICH_OVERLAY:-0}" = "1" ]]; then
+  sed -i "s|prefix: ${JACI_REAL_CRAY_MPICH_PREFIX}|prefix: ${CRAY_MPICH_OVERLAY_PREFIX}|" \
+    "envs/${ENV_NAME}/site/packages.yaml" \
+    2>/dev/null || true
+fi
+
+echo "[INFO] Effective install tree root:"
+grep -n "root:" "envs/${ENV_NAME}/site/config.yaml" \
+  | tee "${LOG_ROOT}/04_effective_install_root.txt" || true
+
+echo "[INFO] Effective cray-mpich prefix:"
+grep -nA16 "cray-mpich:" "envs/${ENV_NAME}/site/packages.yaml" \
+  | tee "${LOG_ROOT}/04_effective_cray_mpich_external.txt" || true
+
+find "envs/${ENV_NAME}" -maxdepth 3 -type f | sort \
+  | tee "${LOG_ROOT}/04_generated_env_files.txt"
+
+# -----------------------------------------------------------------------------
 # Activate, audit and concretize
 # -----------------------------------------------------------------------------
 
@@ -194,7 +200,7 @@ spack config blame packages  | tee "${LOG_ROOT}/08_spack_config_blame_packages.t
 spack config blame compilers | tee "${LOG_ROOT}/08_spack_config_blame_compilers.txt"
 spack config blame modules   | tee "${LOG_ROOT}/08_spack_config_blame_modules.txt"
 
-grep -R "gcc@12.3.0" "envs/${ENV_NAME}" \
+grep -R "gcc@12.3" "envs/${ENV_NAME}" \
   | tee "${LOG_ROOT}/09_check_gcc_external.txt" || true
 grep -R "cray-mpich@8.1.31" "envs/${ENV_NAME}" \
   | tee "${LOG_ROOT}/09_check_cray_mpich_external.txt" || true
