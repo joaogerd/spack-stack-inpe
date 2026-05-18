@@ -4,9 +4,8 @@
 # =============================================================================
 # Shared helpers for spack-stack-inpe operational scripts.
 #
-# This file keeps generic workflow logic separate from machine-specific settings.
-# Site-specific values must be defined in configs/sites/<layout>/<site>/site.env
-# or configs/sites/<site>/site.env.
+# Generic workflow logic belongs here. Machine-specific values belong in
+# configs/sites/<layout>/<site>/site.env or in scripts/sites/<site>/.
 # =============================================================================
 
 set -euo pipefail
@@ -33,29 +32,26 @@ load_site_config() {
 
   if [[ -z "${site_config}" || ! -f "${site_config}" ]]; then
     echo "[ERROR] Site configuration not found for SITE=${SITE}" >&2
-    echo "[ERROR] Expected one of:" >&2
-    echo "[ERROR]   ${SPACK_STACK_INPE_ROOT}/configs/sites/tier2/${SITE}/site.env" >&2
-    echo "[ERROR]   ${SPACK_STACK_INPE_ROOT}/configs/sites/${SITE}/site.env" >&2
-    echo "[ERROR] Or set SITE_CONFIG_FILE=/path/to/site.env" >&2
     return 1
   fi
 
-  # shellcheck source=/dev/null
   source "${site_config}"
   export SITE_CONFIG_FILE="${site_config}"
 
-  export PROJECT_ROOT="${PROJECT_ROOT:-${DEFAULT_PROJECT_ROOT:-/p/projetos/monan_das/${USER}}}"
-  export TEST_ID="${TEST_ID:-${DEFAULT_TEST_ID:-spack-stack-inpe-test}}"
+  export PROJECT_ROOT="${PROJECT_ROOT:-${DEFAULT_PROJECT_ROOT}}"
+  export TEST_ID="${TEST_ID:-${DEFAULT_TEST_ID}}"
   export WORK_ROOT="${WORK_ROOT:-${PROJECT_ROOT}/work/${TEST_ID}}"
   export INSTALL_ROOT="${INSTALL_ROOT:-${PROJECT_ROOT}/env/spack-stack/${TEST_ID}/install}"
   export LOG_ROOT="${LOG_ROOT:-${PROJECT_ROOT}/logs/${TEST_ID}}"
-  export ENV_NAME="${ENV_NAME:-${DEFAULT_ENV_NAME:-${SITE}-spack-stack-env}}"
-  export SPACK_STACK_REPO="${SPACK_STACK_REPO:-${DEFAULT_SPACK_STACK_REPO:-https://github.com/JCSDA/spack-stack.git}}"
-  export SPACK_STACK_REF="${SPACK_STACK_REF:-${DEFAULT_SPACK_STACK_REF:-release/2.1}}"
-  export SPACK_STACK_INPE_REPO="${SPACK_STACK_INPE_REPO:-${DEFAULT_SPACK_STACK_INPE_REPO:-https://github.com/joaogerd/spack-stack-inpe.git}}"
-  export SPACK_STACK_INPE_REF="${SPACK_STACK_INPE_REF:-${DEFAULT_SPACK_STACK_INPE_REF:-main}}"
-  export SITE_STACK_PATH="${SITE_STACK_PATH:-${DEFAULT_SITE_STACK_PATH:-configs/sites/tier2/${SITE}}}"
-  export SOURCE_ENV_PATH="${SOURCE_ENV_PATH:-${DEFAULT_SOURCE_ENV_PATH:-envs/${SITE}}}"
+  export ENV_NAME="${ENV_NAME:-${DEFAULT_ENV_NAME}}"
+  export SPACK_STACK_REPO="${SPACK_STACK_REPO:-${DEFAULT_SPACK_STACK_REPO}}"
+  export SPACK_STACK_REF="${SPACK_STACK_REF:-${DEFAULT_SPACK_STACK_REF}}"
+  export SPACK_STACK_INPE_REPO="${SPACK_STACK_INPE_REPO:-${DEFAULT_SPACK_STACK_INPE_REPO}}"
+  export SPACK_STACK_INPE_REF="${SPACK_STACK_INPE_REF:-${DEFAULT_SPACK_STACK_INPE_REF}}"
+  export SITE_STACK_PATH="${SITE_STACK_PATH:-${DEFAULT_SITE_STACK_PATH}}"
+  export JCSDA_SITE_NAME="${JCSDA_SITE_NAME:-${SITE}}"
+  export JCSDA_ENV_TEMPLATE="${JCSDA_ENV_TEMPLATE:-empty}"
+  export JCSDA_COMPILER="${JCSDA_COMPILER:-}"
 }
 
 initialize_run_layout() {
@@ -73,6 +69,9 @@ print_run_context() {
   echo "[INFO] ENV_NAME=${ENV_NAME}"
   echo "[INFO] SPACK_STACK_REF=${SPACK_STACK_REF}"
   echo "[INFO] SITE_STACK_PATH=${SITE_STACK_PATH}"
+  echo "[INFO] JCSDA_SITE_NAME=${JCSDA_SITE_NAME}"
+  echo "[INFO] JCSDA_ENV_TEMPLATE=${JCSDA_ENV_TEMPLATE}"
+  echo "[INFO] JCSDA_COMPILER=${JCSDA_COMPILER:-UNSET}"
 }
 
 source_spack_stack_site_setup() {
@@ -81,7 +80,6 @@ source_spack_stack_site_setup() {
     echo "[ERROR] Site setup.sh not found: ${setup_file}" >&2
     return 1
   fi
-  # shellcheck source=/dev/null
   source "${setup_file}"
 }
 
@@ -91,7 +89,6 @@ source_spack_stack_setup() {
     echo "[ERROR] spack-stack setup.sh not found: ${setup_file}" >&2
     return 1
   fi
-  # shellcheck source=/dev/null
   source "${setup_file}"
 }
 
