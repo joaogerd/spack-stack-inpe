@@ -2,26 +2,94 @@
 
 INPE site configuration and operational documentation for using the JCSDA `spack-stack` on INPE HPC systems.
 
-The initial validated target is the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH.
+The initial validated target remains the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH. The repository is now organized to allow additional INPE machines/sites to be added without mixing site-specific rules with generic workflow logic.
 
 ## Purpose
 
-This repository stores the INPE/JACI site configuration and the operational procedure required to build and validate a local `spack-stack` environment suitable for future MONAN/MPAS-JEDI work.
+This repository stores INPE site configurations and the operational procedure required to build and validate local `spack-stack` environments suitable for future MONAN/MPAS-JEDI work.
 
 It is intended to contain:
 
 ```text
-- JACI site configuration files following the JCSDA spack-stack layout;
-- ready-to-use YAML files for the site configuration;
-- a site setup.sh for loading the required CrayPE environment;
-- scripts for manual installation and validation;
+- site configuration files following the JCSDA spack-stack layout;
+- ready-to-use YAML files for each site configuration;
+- site setup.sh files for loading machine-specific environments;
+- site.env files with script-level defaults for each machine;
+- reusable scripts for preparation, installation and validation;
+- site-specific helper scripts when required;
 - Portuguese and English operational documentation;
 - stack-level validation notes.
 ```
 
 This repository is not intended to store the MONAN, MPAS-JEDI or `jedi-bundle` source tree. The MONAN/MPAS-JEDI build workflow should consume the validated stack from a separate repository, such as `MONAN-bundle`.
 
+## Repository layout
+
+```text
+spack-stack-inpe/
+├── configs/
+│   └── sites/
+│       └── tier2/
+│           └── jaci/
+│               ├── config.yaml
+│               ├── mirrors.yaml
+│               ├── modules.yaml
+│               ├── packages.yaml
+│               ├── packages_gcc-12.3.yaml
+│               ├── packages_gcc-13.2.yaml
+│               ├── setup.sh
+│               ├── site.env
+│               └── README.md
+├── envs/
+│   └── jaci/
+│       └── mpas-jedi-gcc12-craympich/
+├── scripts/
+│   ├── 01_prepare_jaci_stack.sh
+│   ├── 02_install_packages.sh
+│   ├── 03_generate_tcl_modules.sh
+│   ├── 04_validate_environment.sh
+│   ├── 05_validate_cmake_findmpi.sh
+│   ├── 06_collect_logs.sh
+│   ├── create_craype_mpi_overlay.sh
+│   ├── lib/
+│   │   └── common.sh
+│   └── sites/
+│       └── jaci/
+│           └── load_base_environment.sh
+└── docs/
+    ├── ARCHITECTURE.md
+    ├── ADDING_A_SITE.md
+    ├── pt_BR/
+    └── en/
+```
+
+## Separation of concepts
+
+Generic logic lives in the numbered scripts and in:
+
+```text
+scripts/lib/common.sh
+```
+
+Site-specific values live under the site configuration and site script directories:
+
+```text
+configs/sites/tier2/jaci/site.env
+configs/sites/tier2/jaci/*.yaml
+configs/sites/tier2/jaci/setup.sh
+scripts/sites/jaci/load_base_environment.sh
+```
+
+The current JACI workflow is still the default. Future sites should be added by creating a new site directory, a new environment template and a small site-specific base environment loader.
+
 ## Documentation
+
+Architecture and site onboarding:
+
+```text
+docs/ARCHITECTURE.md
+docs/ADDING_A_SITE.md
+```
 
 Portuguese documentation:
 
@@ -37,8 +105,6 @@ docs/en/README.md
 docs/en/JACI_STACK_BUILD_STEPS.md
 ```
 
-The main operational manual is available in both languages and describes the procedure from preparing the JACI `spack-stack` tree to validating the generated Tcl module environment and CMake/FindMPI behavior.
-
 ## JCSDA-compatible site layout
 
 The JACI site files follow the JCSDA `spack-stack` convention:
@@ -52,8 +118,11 @@ configs/sites/tier2/jaci/
 ├── packages_gcc-12.3.yaml
 ├── packages_gcc-13.2.yaml
 ├── setup.sh
+├── site.env
 └── README.md
 ```
+
+The `site.env` file is not a JCSDA `spack-stack` file. It is used by the scripts in this repository to define the runtime defaults for the site.
 
 ## Environment layout
 
@@ -89,7 +158,7 @@ and not a GNU 13.2 backend path.
 
 ## Cray MPICH overlay
 
-The repository uses a global overlay for the external `cray-mpich` package.
+The repository uses a JACI-specific overlay for the external `cray-mpich` package.
 
 This is required because some Spack recipes call attributes such as:
 
@@ -107,20 +176,9 @@ ftn
 
 This avoids package-by-package patches for MPI consumers such as HDF5, FFTW, NetCDF, Parallel-NetCDF, ParallelIO, eckit and mpi4py.
 
-## Manual workflow
+## Manual workflow for JACI
 
-The official workflow is split into six scripts:
-
-```text
-scripts/01_prepare_jaci_stack.sh
-scripts/02_install_packages.sh
-scripts/03_generate_tcl_modules.sh
-scripts/04_validate_environment.sh
-scripts/05_validate_cmake_findmpi.sh
-scripts/06_collect_logs.sh
-```
-
-Recommended validation sequence:
+The default site is `jaci`, so the current workflow remains:
 
 ```bash
 cd /p/projetos/monan_das/${USER}/projects/spack-stack-inpe
@@ -141,6 +199,14 @@ bash scripts/04_validate_environment.sh
 bash scripts/05_validate_cmake_findmpi.sh
 bash scripts/06_collect_logs.sh
 ```
+
+A future site can use the same numbered scripts by setting `SITE`:
+
+```bash
+SITE=<site-name> bash scripts/01_prepare_jaci_stack.sh
+```
+
+The first script still has `jaci` in the file name to preserve compatibility with the current documented procedure. The selected site is controlled by `SITE` and the corresponding `site.env`.
 
 ## Tagging policy
 
