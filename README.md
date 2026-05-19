@@ -2,11 +2,18 @@
 
 INPE site configuration and operational documentation for using the JCSDA `spack-stack` on INPE HPC systems.
 
-The initial validated target remains the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH. The repository is now organized to allow additional INPE machines/sites to be added without mixing site-specific rules with generic workflow logic.
+The initial validated target remains the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH. The repository is organized to support additional INPE machines/sites without mixing site-specific rules with generic workflow logic.
 
 ## Purpose
 
-This repository stores INPE site configurations and the operational procedure required to build and validate local `spack-stack` environments suitable for future MONAN/MPAS-JEDI work.
+This repository stores INPE site configurations and operational procedures required to build and validate JCSDA-defined `spack-stack` environments on INPE machines.
+
+The conceptual boundary is:
+
+```text
+JCSDA spack-stack = defines the scientific software environment
+INPE spack-stack-inpe = defines how that environment is built on INPE machines
+```
 
 It is intended to contain:
 
@@ -21,7 +28,7 @@ It is intended to contain:
 - stack-level validation notes.
 ```
 
-This repository is not intended to store the MONAN, MPAS-JEDI or `jedi-bundle` source tree. The MONAN/MPAS-JEDI build workflow should consume the validated stack from a separate repository, such as `MONAN-bundle`.
+This repository is not intended to store MONAN, MPAS-JEDI, `jedi-bundle`, or a copied JCSDA environment definition. The JEDI/MPAS-JEDI package set should come from the selected JCSDA `spack-stack` release and template.
 
 ## Repository layout
 
@@ -40,9 +47,6 @@ spack-stack-inpe/
 │               ├── setup.sh
 │               ├── site.env
 │               └── README.md
-├── envs/
-│   └── jaci/
-│       └── mpas-jedi-gcc12-craympich/
 ├── scripts/
 │   ├── 01_prepare_jaci_stack.sh
 │   ├── 02_install_packages.sh
@@ -80,7 +84,16 @@ configs/sites/tier2/jaci/setup.sh
 scripts/sites/jaci/load_base_environment.sh
 ```
 
-The current JACI workflow is still the default. Future sites should be added by creating a new site directory, a new environment template and a small site-specific base environment loader.
+The JCSDA environment template is selected in `site.env` through variables such as:
+
+```text
+JCSDA_SITE_NAME
+JCSDA_ENV_TEMPLATE
+JCSDA_COMPILER
+DEFAULT_ENV_NAME
+```
+
+The script uses `spack stack create env` from JCSDA `spack-stack` to generate the environment. The INPE repository does not maintain a separate `envs/` tree at this stage.
 
 ## Documentation
 
@@ -122,18 +135,7 @@ configs/sites/tier2/jaci/
 └── README.md
 ```
 
-The `site.env` file is not a JCSDA `spack-stack` file. It is used by the scripts in this repository to define the runtime defaults for the site.
-
-## Environment layout
-
-The validated JACI environment is stored under:
-
-```text
-envs/jaci/mpas-jedi-gcc12-craympich/
-├── spack.yaml
-├── common/
-└── site/
-```
+The `site.env` file is not a JCSDA `spack-stack` file. It is used by the scripts in this repository to define runtime defaults for the site.
 
 ## Current validated target
 
