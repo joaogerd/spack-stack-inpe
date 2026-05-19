@@ -41,38 +41,43 @@ packages_gcc-12.3.yaml
 packages_intel-2024.yaml
 ```
 
-## 3. Create the environment template
+## 3. Do not create an INPE environment template by default
 
-Create an environment under:
+Do not add a copied environment under:
 
 ```text
 envs/example-site/<environment-name>/
 ```
 
-For example:
+The scientific environment should come from the selected JCSDA `spack-stack` release and template.
 
-```text
-envs/example-site/mpas-jedi-gcc12-openmpi/
+The generated environment will be created at runtime by:
+
+```bash
+spack stack create env \
+  --site example-site \
+  --template <jcsda-template> \
+  --compiler <compiler> \
+  --name <environment-name> \
+  --prefix <install-prefix>
 ```
 
-This environment should contain the usual `spack-stack` environment layout, such as:
-
-```text
-spack.yaml
-common/
-site/
-```
+Only add an `envs/` tree to this repository if INPE intentionally starts maintaining a modified scientific stack that differs from JCSDA.
 
 ## 4. Create `site.env`
 
-The `site.env` file connects the generic scripts to the site-specific layout.
+The `site.env` file connects the generic scripts to the site-specific layout and to the JCSDA environment template selected for that site.
 
 Minimal example:
 
 ```bash
 export DEFAULT_PROJECT_ROOT="/path/to/project/root/${USER}"
 export DEFAULT_TEST_ID="spack-stack-inpe-example-site-test"
-export DEFAULT_ENV_NAME="example-site-mpas-jedi-gcc12-openmpi"
+export DEFAULT_ENV_NAME="example-site-skylab-dev-gcc12-openmpi"
+
+export JCSDA_SITE_NAME="example-site"
+export JCSDA_ENV_TEMPLATE="skylab-dev"
+export JCSDA_COMPILER="gcc-12.3"
 
 export DEFAULT_SPACK_STACK_REPO="https://github.com/JCSDA/spack-stack.git"
 export DEFAULT_SPACK_STACK_REF="release/2.1"
@@ -80,7 +85,6 @@ export DEFAULT_SPACK_STACK_INPE_REPO="https://github.com/joaogerd/spack-stack-in
 export DEFAULT_SPACK_STACK_INPE_REF="main"
 
 export DEFAULT_SITE_STACK_PATH="configs/sites/tier2/example-site"
-export DEFAULT_SOURCE_ENV_PATH="envs/example-site/mpas-jedi-gcc12-openmpi"
 
 export SITE_BASE_ENV_SCRIPT="scripts/sites/example-site/load_base_environment.sh"
 export SITE_USES_CRAY_MPICH_OVERLAY="0"
@@ -136,8 +140,7 @@ Before considering the site usable, collect evidence for:
 
 ```text
 spack arch
-spack compiler find or explicit compilers.yaml behavior
-spack external find or explicit packages.yaml behavior
+spack stack create env output
 spack config blame config
 spack config blame packages
 spack config blame compilers
@@ -162,7 +165,6 @@ Add only:
 configs/sites/tier2/<site>/site.env
 configs/sites/tier2/<site>/*.yaml
 configs/sites/tier2/<site>/setup.sh
-envs/<site>/<environment>/
 scripts/sites/<site>/load_base_environment.sh
 ```
 
