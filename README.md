@@ -1,76 +1,127 @@
 # spack-stack-inpe
 
-INPE site configuration and operational notes for using the JCSDA `spack-stack` on INPE HPC systems.
+INPE site configurations and operational documentation for deploying JCSDA `spack-stack` environments on INPE HPC systems.
 
-The initial focus is the JACI machine, using the JCSDA `spack-stack` `release/2.1` branch with CrayPE and Cray MPICH.
+The initial validated target is **JACI**, using JCSDA `spack-stack` `release/2.1`, CrayPE and Cray MPICH for future MONAN/JEDI and MPAS-JEDI work.
 
-## Scope
+Portuguese version: [README.pt-BR.md](README.pt-BR.md)
 
-This repository is intended to store:
+## Overview
+
+`spack-stack-inpe` stores site-specific configuration files, operational scripts and validation notes required to create reproducible `spack-stack` environments on INPE HPC systems.
+
+The repository is designed to support MONAN, JEDI and MPAS-JEDI workflows without storing the MONAN, MPAS-JEDI or JEDI source trees.
+
+## Motivation
+
+INPE HPC systems require local adaptation of compilers, MPI, module systems, filesystem paths, schedulers and external packages. This repository records those decisions in a reproducible and auditable way.
+
+The current JACI work is based on lessons learned from earlier EGEON work and from the dedicated JACI bootstrap repository. The goal now is to consolidate the stable site configuration and operational documentation into a single institutional repository.
+
+## Relationship with MONAN, MPAS-JEDI and JEDI
+
+This repository provides the validated software stack. MONAN/JEDI workflows consume this stack from separate repositories.
 
 ```text
-- JACI site configuration files following the JCSDA spack-stack layout;
-- ready-to-copy YAML files for the site configuration;
-- a site `setup.sh` for loading the required CrayPE environment;
-- manual build and validation instructions;
-- stack-level validation notes.
-```
-
-This repository is not intended to store the MONAN/MPAS-JEDI source tree or the MPAS-JEDI build workflow. That belongs in the `MONAN-bundle` repository.
-
-## Expected JCSDA-compatible layout
-
-```text
-configs/sites/tier2/jaci/
-├── config.yaml
-├── mirrors.yaml
-├── modules.yaml
-├── packages.yaml
-├── packages_gcc-13.2.yaml
-├── setup.sh
-└── README.md
+spack-stack-inpe  -> creates and validates the software stack
+MONAN-JEDI        -> builds and tests MONAN/JEDI or MPAS-JEDI using the stack
+MONAN-bundle      -> application or bundle-level build and test workflows
 ```
 
 ## Current status
 
-The current repository contains the initial manual and skeleton site structure.
+| Site | Status | Stack | Notes |
+|---|---|---|---|
+| JACI | active target | `spack-stack release/2.1` | CrayPE, Cray MPICH, PBS |
+| EGEON | historical/legacy | `spack-stack 1.7.0` | SLURM, `gnu9`, OpenMPI |
 
-Confirmed baseline from previous validation:
+## Main features
 
-```text
-spack-stack release/2.1
-PrgEnv-gnu/8.6.0
-gcc-native/12.3
-cray-mpich/8.1.31
-CrayPE drivers cc, CC, ftn
-```
+- JCSDA-compatible site layout.
+- JACI site configuration.
+- CrayPE setup procedure.
+- Cray MPICH overlay and wrapper strategy.
+- Reproducible validation scripts.
+- Portuguese and English documentation.
+- Operational troubleshooting notes.
 
-Institutional target to validate next:
-
-```text
-spack-stack release/2.1
-PrgEnv-gnu/8.6.0
-gcc-native/13.2
-cray-mpich/8.1.31
-CrayPE drivers cc, CC, ftn
-```
-
-## Main documentation
-
-Start with:
+## Repository layout
 
 ```text
-docs/JACI_STACK_BUILD_STEPS.md
+spack-stack-inpe/
+├── configs/        # site and environment configuration files
+├── scripts/        # operational scripts for preparing and validating stacks
+├── docs/           # MkDocs documentation in English and Portuguese
+├── tests/          # smoke tests and validation helpers
+├── README.md       # quick project entry point in English
+├── README.pt-BR.md # quick project entry point in Portuguese
+└── mkdocs.yml      # Material for MkDocs configuration
 ```
 
-This document describes the manual procedure from loading the JACI base environment through creating, concretizing, installing and validating the `spack-stack` environment.
+## Quick start for JACI
 
-## Boundary with MONAN-bundle
+```bash
+cd /p/projetos/monan_das/${USER}/projects
 
-This repository stops at the validated `spack-stack` environment.
+git clone https://github.com/joaogerd/spack-stack-inpe.git
+cd spack-stack-inpe
 
-The MONAN/MPAS-JEDI build and test workflow should consume this stack from:
+export TEST_ID="spack-stack-inpe-validation-$(date -u +%Y%m%dT%H%M%SZ)"
+export FRESH_INSTALL=1
+export FORCE_SOURCE_BUILD=1
+export INSTALL_JOBS=1
+export SPACK_INSTALL_VERBOSE=1
+export SPACK_INSTALL_FAIL_FAST=1
+
+bash scripts/01_prepare_jaci_stack.sh
+bash scripts/02_install_packages.sh
+bash scripts/03_generate_tcl_modules.sh
+bash scripts/04_validate_environment.sh
+bash scripts/05_validate_cmake_findmpi.sh
+bash scripts/06_collect_logs.sh
+```
+
+## Minimal usage example
+
+After the stack has been validated:
+
+```bash
+source <generated-stack-env-script>
+module avail
+module load stack-gcc/<version>
+module load stack-cray-mpich/<version>
+module load jedi-mpas-env/<version>
+```
+
+## Documentation
+
+Full documentation:
+
+- [English documentation](docs/en/index.md)
+- [Portuguese documentation](docs/pt-BR/index.md)
+
+## Contributing
+
+Use `develop` as the integration branch and create topic branches for documentation, fixes and site updates.
+
+Recommended branch pattern:
 
 ```text
-https://github.com/GAD-DIMNT-CPTEC/MONAN-bundle
+main         -> stable and publishable state
+develop      -> integration branch
+docs/*       -> documentation work
+feature/*    -> new functionality
+fix/*        -> corrections
+refactor/*   -> structural changes
+experiment/* -> non-production tests
 ```
+
+See the development guide in the documentation for details.
+
+## License
+
+LGPL v3.0, unless a different institutional policy is explicitly defined.
+
+## Project boundaries
+
+This repository does not store MONAN, MPAS-JEDI or JEDI source code. It provides the validated `spack-stack` environment consumed by those projects.

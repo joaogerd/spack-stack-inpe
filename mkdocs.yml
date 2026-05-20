@@ -1,0 +1,168 @@
+site_name: spack-stack-inpe
+site_description: INPE site configurations and operational documentation for JCSDA spack-stack environments
+site_author: INPE / CPTEC / GAD-DIMNT
+site_url: https://joaogerd.github.io/spack-stack-inpe/
+
+repo_name: joaogerd/spack-stack-inpe
+repo_url: https://github.com/joaogerd/spack-stack-inpe
+edit_uri: edit/develop/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang:
+        - en
+        - pt
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: date
+      fallback_to_build_date: true
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra:
+  alternate:
+    - name: English
+      link: /spack-stack-inpe/en/
+      lang: en
+    - name: Português
+      link: /spack-stack-inpe/pt-BR/
+      lang: pt-BR
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/joaogerd/spack-stack-inpe
+
+nav:
+  - Home:
+      - index.md
+  - English:
+      - Overview: en/index.md
+      - Getting started: en/getting-started.md
+      - Installation: en/installation.md
+      - Usage: en/usage.md
+      - Configuration: en/configuration.md
+      - Architecture: en/architecture.md
+      - Concepts: en/concepts.md
+      - History: en/history.md
+      - JACI: en/jaci.md
+      - EGEON legacy: en/egeon-legacy.md
+      - MONAN/JEDI: en/monan-jedi.md
+      - Cookbook:
+          - en/cookbook/index.md
+          - Install spack-stack: en/cookbook/how-to-install-spack-stack.md
+          - Configure JACI: en/cookbook/how-to-configure-jaci.md
+          - Add a new site: en/cookbook/how-to-add-new-site.md
+          - Use external packages: en/cookbook/how-to-use-external-packages.md
+          - Build MPAS-JEDI: en/cookbook/how-to-build-mpas-jedi.md
+          - Validate CMake FindMPI: en/cookbook/how-to-validate-cmake-findmpi.md
+          - Troubleshooting: en/cookbook/troubleshooting.md
+      - Development:
+          - en/development/index.md
+          - Contributing: en/development/contributing.md
+          - Coding style: en/development/coding-style.md
+          - Testing: en/development/testing.md
+          - Release process: en/development/release-process.md
+          - Roadmap: en/development/roadmap.md
+      - Reference:
+          - en/reference/index.md
+          - Configuration files: en/reference/configuration-files.md
+          - Environment variables: en/reference/environment-variables.md
+          - Scripts: en/reference/scripts.md
+          - Packages: en/reference/packages.md
+          - Compilers: en/reference/compilers.md
+          - Modules: en/reference/modules.md
+          - Cray MPICH overlay: en/reference/cray-mpich-overlay.md
+          - Validation tags: en/reference/validation-tags.md
+      - Changelog: en/changelog.md
+  - Português:
+      - Visão geral: pt-BR/index.md
+      - Primeiros passos: pt-BR/getting-started.md
+      - Instalação: pt-BR/installation.md
+      - Uso: pt-BR/usage.md
+      - Configuração: pt-BR/configuration.md
+      - Arquitetura: pt-BR/architecture.md
+      - Conceitos: pt-BR/concepts.md
+      - Histórico: pt-BR/history.md
+      - JACI: pt-BR/jaci.md
+      - EGEON legado: pt-BR/egeon-legacy.md
+      - MONAN/JEDI: pt-BR/monan-jedi.md
+      - Cookbook:
+          - pt-BR/cookbook/index.md
+          - Instalar spack-stack: pt-BR/cookbook/how-to-install-spack-stack.md
+          - Configurar JACI: pt-BR/cookbook/how-to-configure-jaci.md
+          - Adicionar novo site: pt-BR/cookbook/how-to-add-new-site.md
+          - Usar pacotes externos: pt-BR/cookbook/how-to-use-external-packages.md
+          - Compilar MPAS-JEDI: pt-BR/cookbook/how-to-build-mpas-jedi.md
+          - Validar CMake FindMPI: pt-BR/cookbook/how-to-validate-cmake-findmpi.md
+          - Solução de problemas: pt-BR/cookbook/troubleshooting.md
+      - Desenvolvimento:
+          - pt-BR/development/index.md
+          - Como contribuir: pt-BR/development/contributing.md
+          - Estilo de código: pt-BR/development/coding-style.md
+          - Testes: pt-BR/development/testing.md
+          - Processo de release: pt-BR/development/release-process.md
+          - Roadmap: pt-BR/development/roadmap.md
+      - Referência:
+          - pt-BR/reference/index.md
+          - Arquivos de configuração: pt-BR/reference/configuration-files.md
+          - Variáveis de ambiente: pt-BR/reference/environment-variables.md
+          - Scripts: pt-BR/reference/scripts.md
+          - Pacotes: pt-BR/reference/packages.md
+          - Compiladores: pt-BR/reference/compilers.md
+          - Módulos: pt-BR/reference/modules.md
+          - Overlay Cray MPICH: pt-BR/reference/cray-mpich-overlay.md
+          - Tags de validação: pt-BR/reference/validation-tags.md
