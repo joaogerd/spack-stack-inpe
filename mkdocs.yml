@@ -127,6 +127,7 @@ nav:
           - Modules: en/reference/modules.md
           - Cray MPICH overlay: en/reference/cray-mpich-overlay.md
           - Validation tags: en/reference/validation-tags.md
+      - Changelog: en/changelog.md
   - Português:
       - Visão geral: pt-BR/index.md
       - Primeiros passos: pt-BR/getting-started.md
@@ -153,4 +154,15 @@ nav:
           - Como contribuir: pt-BR/development/contributing.md
           - Estilo de código: pt-BR/development/coding-style.md
           - Testes: pt-BR/development/testing.md
+          - Processo de release: pt-BR/development/release-process.md
           - Roadmap: pt-BR/development/roadmap.md
+      - Referência:
+          - pt-BR/reference/index.md
+          - Arquivos de configuração: pt-BR/reference/configuration-files.md
+          - Variáveis de ambiente: pt-BR/reference/environment-variables.md
+          - Scripts: pt-BR/reference/scripts.md
+          - Pacotes: pt-BR/reference/packages.md
+          - Compiladores: pt-BR/reference/compilers.md
+          - Módulos: pt-BR/reference/modules.md
+          - Overlay Cray MPICH: pt-BR/reference/cray-mpich-overlay.md
+          - Tags de validação: pt-BR/reference/validation-tags.md
