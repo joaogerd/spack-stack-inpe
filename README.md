@@ -152,12 +152,12 @@ Suggested tag format:
 jaci-spack-stack-2.1-gcc12-craympich-YYYYMMDD
 ```
 
-## Boundary with MONAN-bundle
+## Boundary with MONAN-JEDI
 
 This repository stops at the validated `spack-stack` environment.
 
 The MONAN/MPAS-JEDI build and test workflow should consume this stack from a separate repository, for example:
 
 ```text
-https://github.com/GAD-DIMNT-CPTEC/MONAN-bundle
+https://github.com/GAD-DIMNT-CPTEC/MONAN-JEDI
 ```
