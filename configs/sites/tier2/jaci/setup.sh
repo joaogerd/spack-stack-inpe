@@ -46,10 +46,11 @@
 # Do not execute it in a subshell with `bash setup.sh`, because the module and
 # environment changes must remain active in the current shell.
 #
-# This file intentionally resets the module state and explicitly unloads
-# gcc-native/13.2 before loading gcc-native/12.3. The explicit unload is kept
-# even after `module purge` because gcc-native/13.2 is the default GNU backend
-# on JACI and may be restored by local module initialization behavior.
+# This file intentionally resets the module state and normalizes the GNU
+# compiler family before loading gcc-native/12.3. JACI login/module
+# initialization may leave or reintroduce another GNU compiler module after
+# `module purge` or `PrgEnv-gnu`; any such conflicting gcc/* or
+# gcc-native/* entry is removed before the validated target is loaded.
 #
 # Exported metadata
 # -----------------
